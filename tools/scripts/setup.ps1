@@ -74,7 +74,7 @@ Write-Host ("uv:         " + (& $Uv --version))
 Write-Host ("python:     " + (& $VenvPy --version))
 Write-Host ("node:       " + (node --version))
 Write-Host ("npm:        " + (npm --version))
-& $VenvPy -c "import numpy, PIL, jsonschema, pytest, mypy.version as m; print('numpy', numpy.__version__, '| pillow', PIL.__version__, '| jsonschema', jsonschema.__version__ if hasattr(jsonschema,'__version__') else 'ok', '| pytest', pytest.__version__, '| mypy', m.__version__)"
+& $VenvPy -c "from importlib.metadata import version as v; print(' | '.join(f'{p} {v(p)}' for p in ('numpy','pillow','jsonschema','pytest','mypy')))"
 Push-Location $Root
 try { Write-Host ("playwright: " + (npx --no-install playwright --version)) } finally { Pop-Location }
 Write-Host 'Setup complete.' -ForegroundColor Green

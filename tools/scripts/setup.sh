@@ -72,6 +72,6 @@ echo "uv:         $("$UV" --version)"
 echo "python:     $("$VENV/bin/python" --version)"
 echo "node:       $(node --version)"
 echo "npm:        $(npm --version)"
-"$VENV/bin/python" -c "import numpy, PIL, pytest, mypy.version as m; print('numpy', numpy.__version__, '| pillow', PIL.__version__, '| pytest', pytest.__version__, '| mypy', m.__version__)"
+"$VENV/bin/python" -c "from importlib.metadata import version as v; print(' | '.join(f'{p} {v(p)}' for p in ('numpy','pillow','jsonschema','pytest','mypy')))"
 echo "playwright: $(npx --no-install playwright --version)"
 printf '\033[32mSetup complete.\033[0m\n'
