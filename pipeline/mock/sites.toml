@@ -13,7 +13,7 @@ seed = 20261114
 generated_at = 2026-11-14T00:00:00Z   # fixed so the mock set is byte-for-byte reproducible
 ndvi_threshold = 0.3
 earth_grid_step_deg = 1.0
-earth_grid_radius_km = 260
+earth_grid_radius_km = 500
 planet_grid_step_deg = 2.0
 planet_grid_radius_km = 300
 

@@ -102,10 +102,10 @@ export const TILE_SOURCES: readonly TileSource[] = [
       'https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_Shade_Global_256ppd_v06/1.0.0/default/default028mm/{z}/{y}/{x}.png',
     capabilitiesUrl: 'https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_Shade_Global_256ppd_v06/1.0.0/WMTSCapabilities.xml',
     tilingScheme: 'geographic',
-    maximumLevel: 7,
+    maximumLevel: 6, // highest TileMatrix in WMTSCapabilities (checked 2026-11-14)
     credit: 'NASA/GSFC — LRO LOLA via Moon Trek',
     resolution: '256 px/deg (~118 m/px)',
-    verification: unverified('capabilities HTTP 200 on 2026-11-14; tile format/levels not yet probed'),
+    verification: probed('2026-11-14'),
   },
   {
     id: 'trek_mars_viking',
@@ -134,10 +134,10 @@ export const TILE_SOURCES: readonly TileSource[] = [
     capabilitiesUrl:
       'https://trek.nasa.gov/tiles/Mars/EQ/Mars_MGS_MOLA_ClrShade_merge_global_463m/1.0.0/WMTSCapabilities.xml',
     tilingScheme: 'geographic',
-    maximumLevel: 6,
+    maximumLevel: 7, // highest TileMatrix in WMTSCapabilities (checked 2026-11-14)
     credit: 'NASA/GSFC — MGS MOLA via Mars Trek',
     resolution: '463 m/px',
-    verification: unverified('capabilities HTTP 200 on 2026-11-14; tile format/levels not yet probed'),
+    verification: probed('2026-11-14'),
   },
 ];
 

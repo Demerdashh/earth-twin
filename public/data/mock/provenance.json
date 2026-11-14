@@ -247,12 +247,12 @@
    "source": "NASA Moon Trek",
    "product": "LRO_LOLA_Shade_Global_256ppd_v06",
    "resolution": "256 px/deg (~118 m/px)",
-   "date": "unknown",
+   "date": "2026-11-14",
    "processing_steps": [
     "display imagery only — not used in any computation"
    ],
    "url": "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_Shade_Global_256ppd_v06/1.0.0/WMTSCapabilities.xml",
-   "verified": false,
+   "verified": true,
    "mock": false
   },
   {
@@ -275,21 +275,21 @@
    "source": "NASA Mars Trek",
    "product": "Mars_MGS_MOLA_ClrShade_merge_global_463m",
    "resolution": "463 m/px",
-   "date": "unknown",
+   "date": "2026-11-14",
    "processing_steps": [
     "display imagery only — not used in any computation"
    ],
    "url": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_MGS_MOLA_ClrShade_merge_global_463m/1.0.0/WMTSCapabilities.xml",
-   "verified": false,
+   "verified": true,
    "mock": false
   }
  ],
  "runs": [
   {
-   "run_id": "mock-cdef8f328082",
+   "run_id": "mock-13ffb1b1a580",
    "mode": "mock",
    "started_at": "2026-11-14T00:00:00Z",
-   "config_sha256": "cdef8f3280829d301b833689588e3821528abcdcb5ab939107bceebbb4411286",
+   "config_sha256": "13ffb1b1a580fc0abbf7090c0d87282c8c8eb7b201e5bd33c337b53d0356a590",
    "seed": 20261114,
    "outputs": [
     "analogs_gale.geojson",

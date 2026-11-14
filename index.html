@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Analog Finder — find places on Earth that resemble lunar and Martian landing sites, using open NASA data."
+    />
+    <meta name="color-scheme" content="dark" />
+    <title>Analog Finder</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23f2b84b' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%235cc8ff'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body data-mode="story">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div id="app">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div>
+            <p class="brand-name">Analog Finder</p>
+            <p class="brand-sub">Earth analogs for lunar &amp; Martian sites</p>
+          </div>
+        </div>
+        <nav id="mode-tabs" class="tabs" aria-label="Mode">
+          <a href="#story" data-mode="story">Story</a>
+          <a href="#explore" data-mode="explore">Explore</a>
+          <a href="#methods" data-mode="methods">Methods</a>
+        </nav>
+        <div id="body-switch" class="segmented" role="group" aria-label="Body"></div>
+        <span id="data-badge" class="data-badge" role="status">…</span>
+      </header>
+
+      <main id="main" class="stage">
+        <div
+          id="globe"
+          class="globe"
+          aria-label="3D globe. Click a point to inspect it; use the ranking list for keyboard access."
+        ></div>
+        <div id="globe-loading" class="globe-loading" role="status" hidden></div>
+
+        <aside id="story-panel" class="story-panel" aria-label="Story"></aside>
+        <aside id="explore-panel" class="explore-panel" aria-label="Explore controls" hidden></aside>
+
+        <section id="popup" class="popup" role="dialog" aria-labelledby="popup-title" hidden>
+          <button id="popup-close" class="icon-btn" type="button" aria-label="Close details">×</button>
+          <div id="popup-content"></div>
+        </section>
+
+        <footer class="statusbar">
+          <span id="imagery-status" class="status-chip" role="status">Connecting to imagery…</span>
+          <span class="scope-note"
+            >Analogs cover terrain, thermal range, mineralogy and aridity — not gravity, radiation or vacuum.</span
+          >
+        </footer>
+
+        <div id="methods-page" class="methods-page" hidden></div>
+
+        <div id="sources-dialog" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sources-title" hidden>
+          <div class="sheet-card">
+            <div class="section-head">
+              <h2 id="sources-title">Data sources</h2>
+              <button id="sources-close" class="icon-btn" type="button" aria-label="Close data sources">×</button>
+            </div>
+            <div id="sources-body"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+    <div id="boot" class="boot" role="status">
+      <span class="spinner" aria-hidden="true"></span><span class="boot-msg">Loading…</span>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
