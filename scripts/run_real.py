@@ -39,6 +39,11 @@ def main():
     ap.add_argument("--cards", type=int, default=20, help="cards written per target and task")
     ap.add_argument("--novelty-km", type=float, default=200.0)
     ap.add_argument("--out", default="out")
+    ap.add_argument("--known", default=None,
+                    help="JSON with a 'sites' list to report percentiles for instead of config/known_analogs.json, "
+                         "e.g. config/egypt_candidates.json (use a separate --out: novelty flags follow this list)")
+    ap.add_argument("--radius-km", type=float, default=100.0,
+                    help="a site is credited with the best tile within this distance")
     args = ap.parse_args()
 
     parts = [np.load(p) for p in args.earth]
@@ -88,10 +93,18 @@ def main():
     if not targets:
         sys.exit(f"no target .npz files in {args.targets}")
 
-    known = load_cfg("known_analogs.json")["sites"]
+    if args.known:
+        known = json.loads(Path(args.known).read_text(encoding="utf-8"))["sites"]
+        for site in known:  # candidate lists name targets ("analog_for"); borrow those targets' tags
+            if "known_for" not in site:
+                site["known_for"] = sorted({tag for key in site.get("analog_for", [])
+                                            for tag in cfg_targets.get(key, {}).get("validation_tags", [])})
+    else:
+        known = load_cfg("known_analogs.json")["sites"]
     dims = load_cfg("dimensions.json")
     run_pipeline(earth, targets, load_cfg("tasks.json"), dims, load_cfg("bodies.json"), known, args.out,
-                 get_embedder(args.embedder), res_m, cards_per_task=args.cards, novelty_km=args.novelty_km)
+                 get_embedder(args.embedder), res_m, cards_per_task=args.cards, novelty_km=args.novelty_km,
+                 validation_radius_km=args.radius_km)
     print(f"done: serve with ANALOGLENS_OUT={args.out} uvicorn analoglens.api:app --reload")
 
 

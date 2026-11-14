@@ -31,7 +31,7 @@
   "dem": "MOLA MEGDR 128 px/deg for the 463 m scale; a CTX or HiRISE DTM for zoom-ins",
   "profile": {"lst_range_c": 100, "lst_min_c": -90, "ndvi_mean": 0.0, "dust_aod": 0.8},
   "profile_source": "VERIFY: temperatures are rough placeholders, replace with Mars Climate Database values. dust_aod is a proxy: Mars is dustier than anywhere on Earth, so this asks for Earth's dustiest places.",
-  "tasks": ["wind_erosion_science", "dust_mitigation", "rover_mobility"],
+  "tasks": ["wind_erosion_science", "rover_mobility"],
   "validation_tags": ["yardang", "aeolian"]
  },
  "arcadia_planitia": {
