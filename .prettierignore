@@ -1,0 +1,13 @@
+dist
+node_modules
+tools/bin
+tools/python
+tools/cache
+public
+pipeline
+schemas
+docs
+*.md
+package-lock.json
+test-results
+playwright-report

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://analog-finder.contract/schemas/grid.schema.json",
+  "title": "grid_<body>.json — sparse feature grid used for click popups",
+  "description": "Equirectangular grid. Cell (row, col) covers lat [-90 + row*step, -90 + (row+1)*step) and lon [-180 + col*step, -180 + (col+1)*step). Only cells with data are listed. values[i] matches columns[i]; null = no data.",
+  "allOf": [{ "$ref": "common.schema.json#/$defs/header" }],
+  "type": "object",
+  "required": ["body", "step_deg", "columns", "cells", "provenance"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": true,
+    "mock": true,
+    "note": true,
+    "generated_at": true,
+    "generator": true,
+    "body": { "$ref": "common.schema.json#/$defs/body" },
+    "step_deg": { "type": "number", "exclusiveMinimum": 0, "maximum": 10 },
+    "columns": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["elevation_m", "slope_deg", "roughness", "temp_range_k", "mineral_index", "ice_indicator", "ndvi"] }
+    },
+    "cells": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "minItems": 3,
+        "prefixItems": [{ "type": "integer", "minimum": 0 }, { "type": "integer", "minimum": 0 }],
+        "items": { "type": ["number", "null"] }
+      }
+    },
+    "provenance": { "$ref": "common.schema.json#/$defs/feature_provenance" }
+  }
+}

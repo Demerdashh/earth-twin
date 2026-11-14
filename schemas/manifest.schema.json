@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://analog-finder.contract/schemas/manifest.schema.json",
+  "title": "manifest.json — entry point: lists every contract file in a data set (mock or real)",
+  "allOf": [{ "$ref": "common.schema.json#/$defs/header" }],
+  "type": "object",
+  "required": ["files", "analogs", "overlays", "grids"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": true,
+    "mock": true,
+    "note": true,
+    "generated_at": true,
+    "generator": true,
+    "files": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targets", "earth_candidates", "provenance", "known_analogs", "validation_report"],
+      "properties": {
+        "targets": { "$ref": "#/$defs/path" },
+        "earth_candidates": { "$ref": "#/$defs/path" },
+        "provenance": { "$ref": "#/$defs/path" },
+        "known_analogs": { "$ref": "#/$defs/path" },
+        "validation_report": { "$ref": "#/$defs/path" }
+      }
+    },
+    "analogs": {
+      "description": "target_id -> analogs_<target_id>.geojson",
+      "type": "object",
+      "propertyNames": { "$ref": "common.schema.json#/$defs/id" },
+      "additionalProperties": { "type": "string", "pattern": "^analogs_[a-z0-9_]+\\.geojson$" }
+    },
+    "grids": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "earth": { "type": "string", "pattern": "^grid_earth\\.json$" },
+        "moon": { "type": "string", "pattern": "^grid_moon\\.json$" },
+        "mars": { "type": "string", "pattern": "^grid_mars\\.json$" }
+      }
+    },
+    "overlays": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "body", "target_id", "file", "bounds", "width", "height", "value_min", "value_max", "units", "label", "colormap", "provenance_ids"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "kind": { "enum": ["similarity", "vegetation", "water_ice"] },
+          "body": { "$ref": "common.schema.json#/$defs/body" },
+          "target_id": { "anyOf": [{ "$ref": "common.schema.json#/$defs/id" }, { "type": "null" }], "description": "Required (non-null) for kind=similarity." },
+          "file": { "type": "string", "pattern": "^[a-z0-9_]+\\.png$" },
+          "bounds": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["west", "south", "east", "north"],
+            "properties": {
+              "west": { "$ref": "common.schema.json#/$defs/lon" },
+              "south": { "$ref": "common.schema.json#/$defs/lat" },
+              "east": { "$ref": "common.schema.json#/$defs/lon" },
+              "north": { "$ref": "common.schema.json#/$defs/lat" }
+            }
+          },
+          "width": { "type": "integer", "minimum": 1, "maximum": 8192 },
+          "height": { "type": "integer", "minimum": 1, "maximum": 4096 },
+          "value_min": { "type": "number" },
+          "value_max": { "type": "number" },
+          "units": { "type": "string" },
+          "label": { "type": "string" },
+          "colormap": { "enum": ["similarity", "vegetation_exclusion", "water_ice"] },
+          "provenance_ids": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/id" } }
+        },
+        "if": { "properties": { "kind": { "const": "similarity" } } },
+        "then": { "properties": { "target_id": { "$ref": "common.schema.json#/$defs/id" }, "file": { "pattern": "^similarity_[a-z0-9_]+\\.png$" } } }
+      }
+    }
+  },
+  "$defs": {
+    "path": { "type": "string", "pattern": "^[a-z0-9_]+\\.(json|geojson)$" }
+  }
+}

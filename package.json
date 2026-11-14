@@ -1,0 +1,49 @@
+{
+  "name": "analog-finder",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Find places on Earth that resemble lunar and Martian landing sites (NASA Space Apps 2026).",
+  "scripts": {
+    "setup": "node tools/scripts/setup.mjs",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:e2e": "playwright test --grep-invert @screenshots",
+    "screenshots": "playwright test --grep @screenshots",
+    "check:sources": "tsx tools/scripts/check-sources.ts",
+    "export:sources": "tsx tools/scripts/export-sources.ts",
+    "fetch:basemaps": "tsx tools/scripts/fetch-basemaps.ts",
+    "validate:data": "tsx tools/scripts/validate-data.ts",
+    "mock:generate": "node tools/scripts/py.mjs -m pipeline.mock.generate",
+    "pipeline:validate": "node tools/scripts/py.mjs -m pipeline.validate_contract",
+    "pipeline:validation-report": "node tools/scripts/py.mjs -m pipeline.validation",
+    "pipeline:test": "node tools/scripts/py.mjs -m pytest pipeline/tests -q",
+    "pipeline:typecheck": "node tools/scripts/py.mjs -m mypy pipeline",
+    "verify": "npm run typecheck && npm run lint && npm test && npm run validate:data && npm run pipeline:test && npm run pipeline:typecheck && npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "ajv": "8.20.0",
+    "cesium": "1.147.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.65.1",
+    "@types/node": "22.20.5",
+    "eslint": "10.15.0",
+    "prettier": "3.10.1",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.2",
+    "vite": "8.3.8",
+    "vite-plugin-static-copy": "4.1.1",
+    "vitest": "5.1.0"
+  }
+}

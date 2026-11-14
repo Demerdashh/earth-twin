@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://analog-finder.contract/schemas/earth_candidates.schema.json",
+  "title": "earth_candidates.json — Earth candidate sites, their features, and the per-target candidate pools",
+  "allOf": [{ "$ref": "common.schema.json#/$defs/header" }],
+  "type": "object",
+  "required": ["feature_scales", "default_weights", "ndvi_threshold", "candidates", "per_target"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": true,
+    "mock": true,
+    "note": true,
+    "generated_at": true,
+    "generator": true,
+    "feature_scales": { "$ref": "common.schema.json#/$defs/scales" },
+    "default_weights": { "$ref": "common.schema.json#/$defs/weights" },
+    "ndvi_threshold": { "type": "number", "minimum": -1, "maximum": 1, "description": "Candidates with ndvi above this value are excluded (vegetation exclusion filter)." },
+    "candidates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "lat", "lon", "region", "country", "known_analog_id", "coords_verified", "features", "provenance"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "name": { "type": "string", "minLength": 1 },
+          "lat": { "$ref": "common.schema.json#/$defs/lat" },
+          "lon": { "$ref": "common.schema.json#/$defs/lon" },
+          "region": { "type": "string" },
+          "country": { "type": ["string", "null"] },
+          "known_analog_id": { "anyOf": [{ "$ref": "common.schema.json#/$defs/id" }, { "type": "null" }], "description": "Id in known_analogs.json when this candidate is a recognised analog site; null means 'our result, not NASA-validated'." },
+          "coords_verified": { "type": "boolean" },
+          "features": { "$ref": "common.schema.json#/$defs/earth_features" },
+          "provenance": { "$ref": "common.schema.json#/$defs/feature_provenance" }
+        }
+      }
+    },
+    "per_target": {
+      "description": "For every target id, the pool of candidate ids (top 200-300 from the pipeline) the browser may re-rank.",
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "common.schema.json#/$defs/id" },
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 300,
+        "uniqueItems": true,
+        "items": { "$ref": "common.schema.json#/$defs/id" }
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+# Dependencies and build output
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Local toolchain: everything in tools/ except the README and our scripts
+tools/*
+!tools/README.md
+!tools/scripts/
+
+# Raw downloaded data (never committed)
+data/raw/*
+!data/raw/README.md
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# Test artifacts
+test-results/
+playwright-report/
+
+# Editors / OS
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db

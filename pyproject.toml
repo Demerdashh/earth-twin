@@ -1,0 +1,18 @@
+[project]
+name = "analog-finder-pipeline"
+version = "0.1.0"
+requires-python = ">=3.11,<3.12"
+description = "Offline pipeline and data contract for Analog Finder"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["pipeline"]
+
+[[tool.mypy.overrides]]
+module = ["jsonschema.*", "referencing.*", "PIL.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["pipeline/tests"]
+addopts = "-q"
