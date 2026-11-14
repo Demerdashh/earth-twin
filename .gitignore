@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+out/
+out_*/
+data/
+*.npz
+
+# uv
+.venv/
+
+# raw data
+*.img
+*.IMG
+*.lbl
+*.LBL
+*.tif
+*.hdf
+*.nc
+
+# notebooks and secrets
+.ipynb_checkpoints/
+.env
+*.token

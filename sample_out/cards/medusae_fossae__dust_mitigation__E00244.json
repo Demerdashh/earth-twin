@@ -1,0 +1,95 @@
+{
+ "tile_id": "E00244",
+ "target": "medusae_fossae",
+ "target_label": "Medusae Fossae Formation (yardangs)",
+ "task": "dust_mitigation",
+ "task_label": "Dust mitigation",
+ "score": 0.8223,
+ "strong_for": [
+  "Dust",
+  "Dryness (no vegetation)",
+  "Terrain shape"
+ ],
+ "bars": [
+  {
+   "dimension": "dust",
+   "label": "Dust",
+   "weight": 0.4,
+   "score": 0.838,
+   "status": "strong",
+   "earth_value": 0.711,
+   "target_value": 0.8,
+   "unit": "AOD"
+  },
+  {
+   "dimension": "aridity",
+   "label": "Dryness (no vegetation)",
+   "weight": 0.25,
+   "score": 0.864,
+   "status": "strong",
+   "earth_value": 0.043,
+   "target_value": 0.0,
+   "unit": "NDVI"
+  },
+  {
+   "dimension": "terrain_shape",
+   "label": "Terrain shape",
+   "weight": 0.2,
+   "score": 0.813,
+   "status": "strong"
+  },
+  {
+   "dimension": "thermal_range",
+   "label": "Temperature swing",
+   "weight": 0.15,
+   "score": 0.732,
+   "status": "closest on Earth",
+   "earth_value": 52.141,
+   "target_value": 100,
+   "unit": "°C",
+   "note": "No place on Earth reaches the target value; scored against the closest places on Earth"
+  }
+ ],
+ "breaks": [
+  {
+   "dimension": "thermal_range",
+   "kind": "unreachable",
+   "text": "Temperature swing: the target is 100 °C; the closest anywhere on Earth is 72.5 °C"
+  },
+  {
+   "dimension": "gravity",
+   "kind": "fixed",
+   "text": "About 0.38 g on Mars versus 1 g on Earth"
+  },
+  {
+   "dimension": "atmosphere",
+   "kind": "fixed",
+   "text": "About 1% as dense as Earth's (NASA JPL), mostly carbon dioxide"
+  },
+  {
+   "dimension": "radiation",
+   "kind": "fixed",
+   "text": "Thin air and no global magnetic field to shield the surface"
+  },
+  {
+   "dimension": "water",
+   "kind": "fixed",
+   "text": "Liquid water is not stable on the surface today; Earth analogs always hold some moisture"
+  }
+ ],
+ "tests": [
+  "Expose seals, joints, and solar panels to dust storms",
+  "Measure dust build-up on optics over a season",
+  "Test cleaning methods for suits and hardware"
+ ],
+ "nearest_known": {
+  "name": "Known yardang site 1 (synthetic)",
+  "km": 3949.3,
+  "novel": true
+ },
+ "images": {
+  "earth": "/img/earth_E00244.png",
+  "target": "/img/target_medusae_fossae.png"
+ },
+ "synthetic": true
+}

@@ -1,0 +1,13 @@
+{
+ "_about": "One entry per analog dimension. feature = the column scored; sigma = tolerance (in log units when log is true); earth_relative = score by closeness relative to the rest of Earth when no Earth place can reach the target value.",
+ "terrain_shape": {"label": "Terrain shape", "kind": "embedding", "unit": ""},
+ "slope": {"label": "Slope", "feature": "slope_p50", "unit": "°", "sigma": 4.0},
+ "roughness": {"label": "Roughness", "feature": "tri_mean", "unit": "m", "sigma": 0.6, "log": true},
+ "relief": {"label": "Relief", "feature": "relief", "unit": "m", "sigma": 0.7, "log": true},
+ "linearity": {"label": "Wind-aligned texture", "feature": "anisotropy", "unit": "", "sigma": 0.15},
+ "thermal_range": {"label": "Temperature swing", "feature": "lst_range_c", "unit": "°C", "sigma": 15.0, "earth_relative": true},
+ "cold": {"label": "Cold", "feature": "lst_min_c", "unit": "°C", "sigma": 15.0, "earth_relative": true},
+ "aridity": {"label": "Dryness (no vegetation)", "feature": "ndvi_mean", "unit": "NDVI", "sigma": 0.08},
+ "dust": {"label": "Dust", "feature": "dust_aod", "unit": "AOD", "sigma": 0.15, "earth_relative": true},
+ "ground_ice": {"label": "Ground ice", "feature": "ground_ice", "unit": "", "sigma": 0.3}
+}

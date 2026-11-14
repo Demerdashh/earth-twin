@@ -1,0 +1,54 @@
+{
+ "_about": "Real targets for the event. Terrain values (slope, roughness, relief, linearity) are computed from each target's DEM tile at run time; the profile holds what the DEM cannot give. Entries marked VERIFY are placeholders from memory: replace them before presenting.",
+ "shackleton_rim": {
+  "label": "Shackleton crater rim", "body": "moon", "lat": -89.67, "lon": 129.78,
+  "coords_source": "USGS Gazetteer of Planetary Nomenclature, crater centre (21 km across, 4.2 km deep)",
+  "dem": "LOLA gridded DEM at 64 px/deg for the 463 m scale; NASA ADC 2023 'Peak Near Shackleton' or 'Connecting Ridge' CSVs for zoom-ins",
+  "profile": {"lst_range_c": 257, "lst_min_c": -203, "ndvi_mean": 0.0, "ground_ice": 1.0},
+  "profile_source": "Temperatures: NASA Moon Base page (54 °C sunlit to −203 °C in shadowed craters). Ground ice 1.0 because the shadowed floor is believed to hold ice.",
+  "tasks": ["rover_mobility", "ice_prospecting", "base_construction"],
+  "validation_tags": ["crater", "impact", "moon"]
+ },
+ "malapert_massif": {
+  "label": "Malapert Massif", "body": "moon", "lat": null, "lon": null,
+  "coords_source": "Take the centre from the NASA ADC 2023 'Malapert Massif' latitude and longitude CSVs",
+  "dem": "NASA ADC 2023 'Malapert Massif' height CSV (or LOLA)",
+  "profile": {"lst_range_c": 257, "lst_min_c": -203, "ndvi_mean": 0.0},
+  "tasks": ["rover_mobility", "base_construction"],
+  "validation_tags": ["massif", "mountain", "moon"]
+ },
+ "haworth": {
+  "label": "Haworth", "body": "moon", "lat": null, "lon": null,
+  "coords_source": "Take the centre from the NASA ADC 2023 'Haworth' CSVs",
+  "dem": "NASA ADC 2023 'Haworth' height CSV (or LOLA)",
+  "profile": {"lst_range_c": 257, "lst_min_c": -203, "ndvi_mean": 0.0, "ground_ice": 1.0},
+  "tasks": ["rover_mobility", "ice_prospecting"],
+  "validation_tags": ["crater", "impact", "moon"]
+ },
+ "medusae_fossae": {
+  "label": "Medusae Fossae Formation (yardangs)", "body": "mars", "lat": 11.0, "lon": -159.0,
+  "coords_source": "Location of THEMIS image PIA03770, NASA Photojournal (11° N, 159° W)",
+  "dem": "MOLA MEGDR 128 px/deg for the 463 m scale; a CTX or HiRISE DTM for zoom-ins",
+  "profile": {"lst_range_c": 100, "lst_min_c": -90, "ndvi_mean": 0.0, "dust_aod": 0.8},
+  "profile_source": "VERIFY: temperatures are rough placeholders, replace with Mars Climate Database values. dust_aod is a proxy: Mars is dustier than anywhere on Earth, so this asks for Earth's dustiest places.",
+  "tasks": ["wind_erosion_science", "dust_mitigation", "rover_mobility"],
+  "validation_tags": ["yardang", "aeolian", "mars"]
+ },
+ "arcadia_planitia": {
+  "label": "Arcadia Planitia (buried ice)", "body": "mars", "lat": 47.0, "lon": -175.0,
+  "coords_source": "VERIFY in the USGS Gazetteer; approximate centre of the plains",
+  "dem": "MOLA MEGDR 128 px/deg",
+  "profile": {"lst_range_c": 90, "lst_min_c": -110, "ndvi_mean": 0.0, "ground_ice": 1.0},
+  "profile_source": "VERIFY: temperatures are rough placeholders. Ground ice per NASA SWIM maps.",
+  "tasks": ["ice_prospecting", "base_construction", "rover_mobility"],
+  "validation_tags": ["permafrost", "polar_desert", "mars"]
+ },
+ "jezero": {
+  "label": "Jezero crater (ancient lake)", "body": "mars", "lat": 18.38, "lon": 77.58,
+  "coords_source": "VERIFY in the USGS Gazetteer",
+  "dem": "MOLA MEGDR; HiRISE DTM of the delta for zoom-ins",
+  "profile": {"lst_range_c": 100, "lst_min_c": -90, "ndvi_mean": 0.0},
+  "tasks": ["rover_mobility"],
+  "validation_tags": ["crater", "paleolake", "mars"]
+ }
+}

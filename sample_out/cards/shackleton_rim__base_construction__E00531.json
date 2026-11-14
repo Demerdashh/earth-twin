@@ -1,0 +1,104 @@
+{
+ "tile_id": "E00531",
+ "target": "shackleton_rim",
+ "target_label": "Shackleton crater rim",
+ "task": "base_construction",
+ "task_label": "Base construction",
+ "score": 0.7621,
+ "strong_for": [
+  "Terrain shape",
+  "Dryness (no vegetation)"
+ ],
+ "bars": [
+  {
+   "dimension": "slope",
+   "label": "Slope",
+   "weight": 0.3,
+   "score": 0.612,
+   "status": "partial",
+   "earth_value": 7.335,
+   "target_value": 3.368,
+   "unit": "°"
+  },
+  {
+   "dimension": "thermal_range",
+   "label": "Temperature swing",
+   "weight": 0.2,
+   "score": 0.998,
+   "status": "closest on Earth",
+   "earth_value": 72.277,
+   "target_value": 257,
+   "unit": "°C",
+   "note": "No place on Earth reaches the target value; scored against the closest places on Earth"
+  },
+  {
+   "dimension": "terrain_shape",
+   "label": "Terrain shape",
+   "weight": 0.2,
+   "score": 0.913,
+   "status": "strong"
+  },
+  {
+   "dimension": "relief",
+   "label": "Relief",
+   "weight": 0.15,
+   "score": 0.518,
+   "status": "partial",
+   "earth_value": 1773.916,
+   "target_value": 3960.586,
+   "unit": "m"
+  },
+  {
+   "dimension": "aridity",
+   "label": "Dryness (no vegetation)",
+   "weight": 0.15,
+   "score": 0.955,
+   "status": "strong",
+   "earth_value": 0.024,
+   "target_value": 0.0,
+   "unit": "NDVI"
+  }
+ ],
+ "breaks": [
+  {
+   "dimension": "thermal_range",
+   "kind": "unreachable",
+   "text": "Temperature swing: the target is 257 °C; the closest anywhere on Earth is 72.5 °C"
+  },
+  {
+   "dimension": "gravity",
+   "kind": "fixed",
+   "text": "About 0.17 g on the Moon versus 1 g on Earth"
+  },
+  {
+   "dimension": "atmosphere",
+   "kind": "fixed",
+   "text": "Essentially a vacuum: no wind, no weathering by air, no air to carry heat"
+  },
+  {
+   "dimension": "radiation",
+   "kind": "fixed",
+   "text": "No thick air and no global magnetic field to shield the surface"
+  },
+  {
+   "dimension": "temperature",
+   "kind": "fixed",
+   "text": "54 °C in sunlight to −203 °C in shadowed craters (NASA Moon Base page); Earth’s record low is about −89 °C"
+  }
+ ],
+ "tests": [
+  "Level and stabilise a landing pad on similar slopes",
+  "Cure construction material made from local loose rock and dust",
+  "Load-test structures through large day-night temperature swings"
+ ],
+ "nearest_known": {
+  "name": "Known crater cold site 1 (synthetic)",
+  "km": 2112.7,
+  "novel": true
+ },
+ "images": {
+  "earth": "/img/earth_E00531.png",
+  "target": "/img/target_shackleton_rim.png"
+ },
+ "synthetic": true
+}

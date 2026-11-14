@@ -1,0 +1,19 @@
+{
+ "_about": "Validation set: widely used analog sites, tagged by what they are known for. Coordinates are APPROXIMATE (from memory); check each before the validation slide. The engine should rank these near the top for matching targets; the novelty filter keeps them apart from new candidates.",
+ "sites": [
+  {"name": "Haughton Crater, Devon Island", "lat": 75.38, "lon": -89.68, "known_for": ["crater", "impact", "polar_desert", "mars"]},
+  {"name": "Meteor Crater, Arizona", "lat": 35.03, "lon": -111.02, "known_for": ["crater", "impact", "moon"]},
+  {"name": "Atacama Desert (Yungay)", "lat": -24.08, "lon": -69.92, "known_for": ["hyperarid", "mars"]},
+  {"name": "Death Valley", "lat": 36.5, "lon": -117.0, "known_for": ["aeolian", "hyperarid", "mars"]},
+  {"name": "McMurdo Dry Valleys", "lat": -77.5, "lon": 162.0, "known_for": ["polar_desert", "permafrost", "mars"]},
+  {"name": "Craters of the Moon, Idaho", "lat": 43.4, "lon": -113.5, "known_for": ["volcanic", "moon"]},
+  {"name": "Mauna Kea, Hawaii", "lat": 19.82, "lon": -155.47, "known_for": ["volcanic", "regolith", "moon"]},
+  {"name": "Kilauea, Hawaii", "lat": 19.41, "lon": -155.28, "known_for": ["volcanic", "mars"]},
+  {"name": "Holuhraun, Iceland", "lat": 64.87, "lon": -16.83, "known_for": ["volcanic", "basalt_sand", "mars"]},
+  {"name": "Rio Tinto, Spain", "lat": 37.72, "lon": -6.55, "known_for": ["acidic", "minerals", "mars"]},
+  {"name": "Bockfjord, Svalbard", "lat": 79.4, "lon": 13.3, "known_for": ["polar_desert", "permafrost", "mars"]},
+  {"name": "Lanzarote, Canary Islands", "lat": 29.0, "lon": -13.6, "known_for": ["volcanic", "moon", "mars"]},
+  {"name": "Mars Desert Research Station, Utah", "lat": 38.41, "lon": -110.79, "known_for": ["hyperarid", "mars"]},
+  {"name": "Lut Desert yardangs, Iran", "lat": 30.4, "lon": 58.9, "known_for": ["yardang", "aeolian", "mars"]}
+ ]
+}

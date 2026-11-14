@@ -1,0 +1,4 @@
+# Install with uv (see README). This file is kept for pip-only environments such as Colab:
+#   pip install -r requirements.txt
+# Dependencies are defined once, in pyproject.toml.
+-e .[real,serve]

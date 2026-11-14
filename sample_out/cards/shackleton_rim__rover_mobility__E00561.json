@@ -1,0 +1,101 @@
+{
+ "tile_id": "E00561",
+ "target": "shackleton_rim",
+ "target_label": "Shackleton crater rim",
+ "task": "rover_mobility",
+ "task_label": "Rover mobility",
+ "score": 0.8425,
+ "strong_for": [
+  "Terrain shape",
+  "Slope",
+  "Roughness",
+  "Dryness (no vegetation)",
+  "Relief"
+ ],
+ "bars": [
+  {
+   "dimension": "terrain_shape",
+   "label": "Terrain shape",
+   "weight": 0.3,
+   "score": 0.807,
+   "status": "strong"
+  },
+  {
+   "dimension": "slope",
+   "label": "Slope",
+   "weight": 0.25,
+   "score": 0.97,
+   "status": "strong",
+   "earth_value": 4.352,
+   "target_value": 3.368,
+   "unit": "°"
+  },
+  {
+   "dimension": "roughness",
+   "label": "Roughness",
+   "weight": 0.2,
+   "score": 0.8,
+   "status": "strong",
+   "earth_value": 56.428,
+   "target_value": 84.252,
+   "unit": "m"
+  },
+  {
+   "dimension": "aridity",
+   "label": "Dryness (no vegetation)",
+   "weight": 0.15,
+   "score": 0.856,
+   "status": "strong",
+   "earth_value": 0.045,
+   "target_value": 0.0,
+   "unit": "NDVI"
+  },
+  {
+   "dimension": "relief",
+   "label": "Relief",
+   "weight": 0.1,
+   "score": 0.73,
+   "status": "strong",
+   "earth_value": 2273.717,
+   "target_value": 3960.586,
+   "unit": "m"
+  }
+ ],
+ "breaks": [
+  {
+   "dimension": "gravity",
+   "kind": "fixed",
+   "text": "About 0.17 g on the Moon versus 1 g on Earth"
+  },
+  {
+   "dimension": "atmosphere",
+   "kind": "fixed",
+   "text": "Essentially a vacuum: no wind, no weathering by air, no air to carry heat"
+  },
+  {
+   "dimension": "radiation",
+   "kind": "fixed",
+   "text": "No thick air and no global magnetic field to shield the surface"
+  },
+  {
+   "dimension": "temperature",
+   "kind": "fixed",
+   "text": "54 °C in sunlight to −203 °C in shadowed craters (NASA Moon Base page); Earth’s record low is about −89 °C"
+  }
+ ],
+ "tests": [
+  "Drive a prototype rover across slopes like the target's and log wheel slip",
+  "Train hazard detection on crater rims and blocky ground",
+  "Plan traverses using only orbital-resolution maps, then check them on the ground"
+ ],
+ "nearest_known": {
+  "name": "Known plain icy site 2 (synthetic)",
+  "km": 4219.2,
+  "novel": true
+ },
+ "images": {
+  "earth": "/img/earth_E00561.png",
+  "target": "/img/target_shackleton_rim.png"
+ },
+ "synthetic": true
+}

@@ -1,0 +1,37 @@
+{
+ "rover_mobility": {
+  "label": "Rover mobility",
+  "weights": {"terrain_shape": 0.30, "slope": 0.25, "roughness": 0.20, "relief": 0.10, "aridity": 0.15},
+  "tests": ["Drive a prototype rover across slopes like the target's and log wheel slip",
+            "Train hazard detection on crater rims and blocky ground",
+            "Plan traverses using only orbital-resolution maps, then check them on the ground"]
+ },
+ "ice_prospecting": {
+  "label": "Ice prospecting",
+  "weights": {"ground_ice": 0.35, "cold": 0.30, "aridity": 0.15, "terrain_shape": 0.20},
+  "tests": ["Field-test ground-penetrating radar over buried ice",
+            "Rehearse drilling and sample handling in frozen ground",
+            "Check thermal models of where ice survives near the surface"]
+ },
+ "dust_mitigation": {
+  "label": "Dust mitigation",
+  "weights": {"dust": 0.40, "aridity": 0.25, "thermal_range": 0.15, "terrain_shape": 0.20},
+  "tests": ["Expose seals, joints, and solar panels to dust storms",
+            "Measure dust build-up on optics over a season",
+            "Test cleaning methods for suits and hardware"]
+ },
+ "base_construction": {
+  "label": "Base construction",
+  "weights": {"slope": 0.30, "relief": 0.15, "thermal_range": 0.20, "aridity": 0.15, "terrain_shape": 0.20},
+  "tests": ["Level and stabilise a landing pad on similar slopes",
+            "Cure construction material made from local loose rock and dust",
+            "Load-test structures through large day-night temperature swings"]
+ },
+ "wind_erosion_science": {
+  "label": "Wind-erosion science",
+  "weights": {"terrain_shape": 0.40, "linearity": 0.20, "dust": 0.15, "aridity": 0.25},
+  "tests": ["Measure yardang shapes and erosion rates and compare them with Martian ones",
+            "Calibrate rover cameras on wind-carved layered rock",
+            "Compare dune and ripple migration with orbital change detection"]
+ }
+}

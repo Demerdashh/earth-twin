@@ -1,0 +1,864 @@
+{
+ "target": "medusae_fossae",
+ "task": "wind_erosion_science",
+ "embedder": "descriptors",
+ "synthetic": true,
+ "dimension_modes": {
+  "terrain_shape": "absolute",
+  "linearity": "absolute",
+  "dust": "absolute",
+  "aridity": "absolute"
+ },
+ "results": [
+  {
+   "rank": 1,
+   "tile_id": "E00290",
+   "lat": -23.4552,
+   "lon": 16.604,
+   "score": 0.9074,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.861,
+    "linearity": 0.987,
+    "dust": 0.925,
+    "aridity": 0.911
+   },
+   "novel": true,
+   "nearest_known": "Known yardang site 3 (synthetic)",
+   "nearest_known_km": 5481.3
+  },
+  {
+   "rank": 2,
+   "tile_id": "E00265",
+   "lat": 29.4448,
+   "lon": -79.8337,
+   "score": 0.903,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.833,
+    "linearity": 0.969,
+    "dust": 0.967,
+    "aridity": 0.933
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 3 (synthetic)",
+   "nearest_known_km": 1681.4
+  },
+  {
+   "rank": 3,
+   "tile_id": "E00218",
+   "lat": -30.4505,
+   "lon": 78.7034,
+   "score": 0.9013,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.843,
+    "linearity": 0.997,
+    "dust": 0.899,
+    "aridity": 0.926
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 1 (synthetic)",
+   "nearest_known_km": 5720.7
+  },
+  {
+   "rank": 4,
+   "tile_id": "E00326",
+   "lat": -24.1264,
+   "lon": 66.4623,
+   "score": 0.8779,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.852,
+    "linearity": 0.98,
+    "dust": 0.922,
+    "aridity": 0.82
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 1 (synthetic)",
+   "nearest_known_km": 5277.4
+  },
+  {
+   "rank": 5,
+   "tile_id": "E00351",
+   "lat": 24.1252,
+   "lon": -3.0979,
+   "score": 0.8777,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.851,
+    "linearity": 0.918,
+    "dust": 0.913,
+    "aridity": 0.869
+   },
+   "novel": true,
+   "nearest_known": "Known yardang site 3 (synthetic)",
+   "nearest_known_km": 2466.2
+  },
+  {
+   "rank": 6,
+   "tile_id": "E00354",
+   "lat": 27.6502,
+   "lon": -21.7082,
+   "score": 0.8771,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.845,
+    "linearity": 0.938,
+    "dust": 0.96,
+    "aridity": 0.836
+   },
+   "novel": true,
+   "nearest_known": "Known massif site 2 (synthetic)",
+   "nearest_known_km": 1557.2
+  },
+  {
+   "rank": 7,
+   "tile_id": "E00431",
+   "lat": -31.4145,
+   "lon": 168.387,
+   "score": 0.8702,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.855,
+    "linearity": 0.93,
+    "dust": 0.685,
+    "aridity": 0.981
+   },
+   "novel": false,
+   "nearest_known": "Known yardang site 1 (synthetic)",
+   "nearest_known_km": 0.0
+  },
+  {
+   "rank": 8,
+   "tile_id": "E00495",
+   "lat": 26.6084,
+   "lon": -97.5649,
+   "score": 0.8689,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.855,
+    "linearity": 0.959,
+    "dust": 0.823,
+    "aridity": 0.853
+   },
+   "novel": false,
+   "nearest_known": "Known yardang site 2 (synthetic)",
+   "nearest_known_km": 0.0
+  },
+  {
+   "rank": 9,
+   "tile_id": "E00099",
+   "lat": -21.2613,
+   "lon": -99.6876,
+   "score": 0.863,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.864,
+    "linearity": 0.997,
+    "dust": 0.8,
+    "aridity": 0.803
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 2 (synthetic)",
+   "nearest_known_km": 4005.1
+  },
+  {
+   "rank": 10,
+   "tile_id": "E00179",
+   "lat": -27.9251,
+   "lon": -12.1523,
+   "score": 0.8524,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.856,
+    "linearity": 0.991,
+    "dust": 0.563,
+    "aridity": 0.963
+   },
+   "novel": true,
+   "nearest_known": "Known massif site 2 (synthetic)",
+   "nearest_known_km": 6388.4
+  },
+  {
+   "rank": 11,
+   "tile_id": "E00244",
+   "lat": -29.684,
+   "lon": 126.9488,
+   "score": 0.8344,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.813,
+    "linearity": 0.839,
+    "dust": 0.838,
+    "aridity": 0.864
+   },
+   "novel": true,
+   "nearest_known": "Known yardang site 1 (synthetic)",
+   "nearest_known_km": 3949.3
+  },
+  {
+   "rank": 12,
+   "tile_id": "E00600",
+   "lat": 25.45,
+   "lon": 30.55,
+   "score": 0.8181,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.86,
+    "linearity": 0.997,
+    "dust": 0.456,
+    "aridity": 0.917
+   },
+   "novel": true,
+   "nearest_known": "Known yardang site 3 (synthetic)",
+   "nearest_known_km": 925.3
+  },
+  {
+   "rank": 13,
+   "tile_id": "E00256",
+   "lat": 33.1631,
+   "lon": 155.2609,
+   "score": 0.8158,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.849,
+    "linearity": 0.979,
+    "dust": 0.415,
+    "aridity": 0.991
+   },
+   "novel": true,
+   "nearest_known": "Known massif site 1 (synthetic)",
+   "nearest_known_km": 1504.0
+  },
+  {
+   "rank": 14,
+   "tile_id": "E00439",
+   "lat": -30.644,
+   "lon": 162.8465,
+   "score": 0.7729,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.844,
+    "linearity": 0.8,
+    "dust": 0.4,
+    "aridity": 0.968
+   },
+   "novel": true,
+   "nearest_known": "Known yardang site 1 (synthetic)",
+   "nearest_known_km": 534.8
+  },
+  {
+   "rank": 15,
+   "tile_id": "E00582",
+   "lat": 25.6263,
+   "lon": 21.3275,
+   "score": 0.7609,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.891,
+    "linearity": 0.979,
+    "dust": 0.323,
+    "aridity": 0.808
+   },
+   "novel": false,
+   "nearest_known": "Known yardang site 3 (synthetic)",
+   "nearest_known_km": 0.0
+  },
+  {
+   "rank": 16,
+   "tile_id": "E00328",
+   "lat": 19.8257,
+   "lon": -21.1423,
+   "score": 0.7241,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.794,
+    "linearity": 0.954,
+    "dust": 0.342,
+    "aridity": 0.785
+   },
+   "novel": true,
+   "nearest_known": "Known massif site 2 (synthetic)",
+   "nearest_known_km": 1695.4
+  },
+  {
+   "rank": 17,
+   "tile_id": "E00479",
+   "lat": -20.8198,
+   "lon": -95.1728,
+   "score": 0.6905,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.468,
+    "linearity": 0.901,
+    "dust": 0.825,
+    "aridity": 0.934
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 2 (synthetic)",
+   "nearest_known_km": 4472.0
+  },
+  {
+   "rank": 18,
+   "tile_id": "E00325",
+   "lat": 34.7956,
+   "lon": -139.2746,
+   "score": 0.6897,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.733,
+    "linearity": 0.845,
+    "dust": 0.3,
+    "aridity": 0.875
+   },
+   "novel": true,
+   "nearest_known": "Known plain icy site 2 (synthetic)",
+   "nearest_known_km": 3497.6
+  },
+  {
+   "rank": 19,
+   "tile_id": "E00212",
+   "lat": 23.0762,
+   "lon": 89.8352,
+   "score": 0.6847,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.834,
+    "linearity": 0.992,
+    "dust": 0.152,
+    "aridity": 0.914
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 1 (synthetic)",
+   "nearest_known_km": 856.9
+  },
+  {
+   "rank": 20,
+   "tile_id": "E00535",
+   "lat": 20.3931,
+   "lon": -109.7463,
+   "score": 0.6783,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.424,
+    "linearity": 0.991,
+    "dust": 0.791,
+    "aridity": 0.97
+   },
+   "novel": true,
+   "nearest_known": "Known yardang site 2 (synthetic)",
+   "nearest_known_km": 1420.3
+  },
+  {
+   "rank": 21,
+   "tile_id": "E00419",
+   "lat": 15.9468,
+   "lon": -102.4748,
+   "score": 0.6693,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.45,
+    "linearity": 0.874,
+    "dust": 0.976,
+    "aridity": 0.813
+   },
+   "novel": true,
+   "nearest_known": "Known yardang site 2 (synthetic)",
+   "nearest_known_km": 1289.6
+  },
+  {
+   "rank": 22,
+   "tile_id": "E00333",
+   "lat": -34.5607,
+   "lon": 157.2675,
+   "score": 0.6612,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.498,
+    "linearity": 0.999,
+    "dust": 0.55,
+    "aridity": 0.834
+   },
+   "novel": true,
+   "nearest_known": "Known yardang site 1 (synthetic)",
+   "nearest_known_km": 1093.8
+  },
+  {
+   "rank": 23,
+   "tile_id": "E00395",
+   "lat": -22.9318,
+   "lon": -104.4272,
+   "score": 0.6607,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.456,
+    "linearity": 0.81,
+    "dust": 0.746,
+    "aridity": 0.943
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 2 (synthetic)",
+   "nearest_known_km": 3489.2
+  },
+  {
+   "rank": 24,
+   "tile_id": "E00163",
+   "lat": 20.0674,
+   "lon": -158.478,
+   "score": 0.6607,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.877,
+    "linearity": 0.997,
+    "dust": 0.121,
+    "aridity": 0.835
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 2 (synthetic)",
+   "nearest_known_km": 5419.3
+  },
+  {
+   "rank": 25,
+   "tile_id": "E00549",
+   "lat": 16.1474,
+   "lon": -9.0466,
+   "score": 0.6513,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.37,
+    "linearity": 0.949,
+    "dust": 0.921,
+    "aridity": 0.965
+   },
+   "novel": true,
+   "nearest_known": "Known massif site 2 (synthetic)",
+   "nearest_known_km": 3035.8
+  },
+  {
+   "rank": 26,
+   "tile_id": "E00558",
+   "lat": 26.3478,
+   "lon": -154.6364,
+   "score": 0.6419,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.422,
+    "linearity": 0.802,
+    "dust": 0.753,
+    "aridity": 0.956
+   },
+   "novel": true,
+   "nearest_known": "Known plain icy site 2 (synthetic)",
+   "nearest_known_km": 4726.9
+  },
+  {
+   "rank": 27,
+   "tile_id": "E00553",
+   "lat": 23.2957,
+   "lon": -3.0021,
+   "score": 0.6375,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.464,
+    "linearity": 0.775,
+    "dust": 0.551,
+    "aridity": 0.989
+   },
+   "novel": true,
+   "nearest_known": "Known yardang site 3 (synthetic)",
+   "nearest_known_km": 2472.6
+  },
+  {
+   "rank": 28,
+   "tile_id": "E00329",
+   "lat": -28.5056,
+   "lon": -114.3033,
+   "score": 0.6371,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.331,
+    "linearity": 0.998,
+    "dust": 0.973,
+    "aridity": 0.985
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 2 (synthetic)",
+   "nearest_known_km": 2462.9
+  },
+  {
+   "rank": 29,
+   "tile_id": "E00444",
+   "lat": 32.8811,
+   "lon": 117.1641,
+   "score": 0.6358,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.47,
+    "linearity": 0.802,
+    "dust": 0.667,
+    "aridity": 0.833
+   },
+   "novel": true,
+   "nearest_known": "Known massif site 1 (synthetic)",
+   "nearest_known_km": 2088.2
+  },
+  {
+   "rank": 30,
+   "tile_id": "E00225",
+   "lat": -30.7557,
+   "lon": 168.2958,
+   "score": 0.6327,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.871,
+    "linearity": 0.974,
+    "dust": 0.095,
+    "aridity": 0.836
+   },
+   "novel": false,
+   "nearest_known": "Known yardang site 1 (synthetic)",
+   "nearest_known_km": 73.8
+  },
+  {
+   "rank": 31,
+   "tile_id": "E00112",
+   "lat": 23.1123,
+   "lon": -73.1933,
+   "score": 0.6315,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.337,
+    "linearity": 0.974,
+    "dust": 0.987,
+    "aridity": 0.93
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 3 (synthetic)",
+   "nearest_known_km": 1348.1
+  },
+  {
+   "rank": 32,
+   "tile_id": "E00291",
+   "lat": -27.055,
+   "lon": -137.4347,
+   "score": 0.6264,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.36,
+    "linearity": 0.974,
+    "dust": 0.994,
+    "aridity": 0.809
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 2 (synthetic)",
+   "nearest_known_km": 290.0
+  },
+  {
+   "rank": 33,
+   "tile_id": "E00046",
+   "lat": 32.7213,
+   "lon": 8.3545,
+   "score": 0.6247,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.815,
+    "linearity": 1.0,
+    "dust": 0.1,
+    "aridity": 0.841
+   },
+   "novel": true,
+   "nearest_known": "Known yardang site 3 (synthetic)",
+   "nearest_known_km": 1484.3
+  },
+  {
+   "rank": 34,
+   "tile_id": "E00321",
+   "lat": 23.3783,
+   "lon": 106.6046,
+   "score": 0.6247,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.377,
+    "linearity": 0.915,
+    "dust": 0.809,
+    "aridity": 0.884
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 1 (synthetic)",
+   "nearest_known_km": 2560.3
+  },
+  {
+   "rank": 35,
+   "tile_id": "E00404",
+   "lat": 26.9948,
+   "lon": -62.3579,
+   "score": 0.6243,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.835,
+    "linearity": 0.935,
+    "dust": 0.104,
+    "aridity": 0.829
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 3 (synthetic)",
+   "nearest_known_km": 389.4
+  },
+  {
+   "rank": 36,
+   "tile_id": "E00285",
+   "lat": 27.2275,
+   "lon": -48.7,
+   "score": 0.6227,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.417,
+    "linearity": 0.998,
+    "dust": 0.465,
+    "aridity": 0.967
+   },
+   "novel": true,
+   "nearest_known": "Known massif site 2 (synthetic)",
+   "nearest_known_km": 1226.3
+  },
+  {
+   "rank": 37,
+   "tile_id": "E00301",
+   "lat": 29.9065,
+   "lon": -7.8959,
+   "score": 0.6201,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.326,
+    "linearity": 0.982,
+    "dust": 0.937,
+    "aridity": 0.935
+   },
+   "novel": true,
+   "nearest_known": "Known yardang site 3 (synthetic)",
+   "nearest_known_km": 2906.4
+  },
+  {
+   "rank": 38,
+   "tile_id": "E00190",
+   "lat": 29.6084,
+   "lon": -26.4178,
+   "score": 0.6178,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.462,
+    "linearity": 0.829,
+    "dust": 0.453,
+    "aridity": 0.935
+   },
+   "novel": true,
+   "nearest_known": "Known massif site 2 (synthetic)",
+   "nearest_known_km": 1187.6
+  },
+  {
+   "rank": 39,
+   "tile_id": "E00559",
+   "lat": -22.2103,
+   "lon": 139.0083,
+   "score": 0.6158,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.369,
+    "linearity": 0.943,
+    "dust": 0.937,
+    "aridity": 0.772
+   },
+   "novel": true,
+   "nearest_known": "Known yardang site 1 (synthetic)",
+   "nearest_known_km": 3078.4
+  },
+  {
+   "rank": 40,
+   "tile_id": "E00246",
+   "lat": 25.8329,
+   "lon": 50.7302,
+   "score": 0.6107,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.31,
+    "linearity": 0.995,
+    "dust": 0.999,
+    "aridity": 0.912
+   },
+   "novel": true,
+   "nearest_known": "Known yardang site 3 (synthetic)",
+   "nearest_known_km": 2939.1
+  },
+  {
+   "rank": 41,
+   "tile_id": "E00128",
+   "lat": 15.1342,
+   "lon": 64.6235,
+   "score": 0.6075,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.391,
+    "linearity": 0.984,
+    "dust": 0.458,
+    "aridity": 0.991
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 1 (synthetic)",
+   "nearest_known_km": 1930.6
+  },
+  {
+   "rank": 42,
+   "tile_id": "E00083",
+   "lat": -21.4454,
+   "lon": 138.0128,
+   "score": 0.6035,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.473,
+    "linearity": 0.97,
+    "dust": 0.28,
+    "aridity": 0.966
+   },
+   "novel": true,
+   "nearest_known": "Known yardang site 1 (synthetic)",
+   "nearest_known_km": 3208.2
+  },
+  {
+   "rank": 43,
+   "tile_id": "E00234",
+   "lat": -22.8211,
+   "lon": -83.7854,
+   "score": 0.6007,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.347,
+    "linearity": 0.832,
+    "dust": 0.73,
+    "aridity": 0.99
+   },
+   "novel": true,
+   "nearest_known": "Known massif site 3 (synthetic)",
+   "nearest_known_km": 5244.1
+  },
+  {
+   "rank": 44,
+   "tile_id": "E00063",
+   "lat": 20.5951,
+   "lon": -158.3605,
+   "score": 0.6,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.423,
+    "linearity": 0.973,
+    "dust": 0.451,
+    "aridity": 0.845
+   },
+   "novel": true,
+   "nearest_known": "Known plain icy site 2 (synthetic)",
+   "nearest_known_km": 5444.9
+  },
+  {
+   "rank": 45,
+   "tile_id": "E00074",
+   "lat": -20.791,
+   "lon": -163.8162,
+   "score": 0.5985,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.344,
+    "linearity": 0.987,
+    "dust": 0.663,
+    "aridity": 0.916
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 2 (synthetic)",
+   "nearest_known_km": 2602.1
+  },
+  {
+   "rank": 46,
+   "tile_id": "E00536",
+   "lat": -34.2767,
+   "lon": 143.0311,
+   "score": 0.598,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.468,
+    "linearity": 0.775,
+    "dust": 0.534,
+    "aridity": 0.77
+   },
+   "novel": true,
+   "nearest_known": "Known yardang site 1 (synthetic)",
+   "nearest_known_km": 2383.7
+  },
+  {
+   "rank": 47,
+   "tile_id": "E00276",
+   "lat": -31.5834,
+   "lon": 103.8552,
+   "score": 0.5908,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.866,
+    "linearity": 0.968,
+    "dust": 0.057,
+    "aridity": 0.876
+   },
+   "novel": true,
+   "nearest_known": "Known plain icy site 1 (synthetic)",
+   "nearest_known_km": 5540.8
+  },
+  {
+   "rank": 48,
+   "tile_id": "E00262",
+   "lat": 16.01,
+   "lon": 79.7188,
+   "score": 0.5876,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.484,
+    "linearity": 0.736,
+    "dust": 0.334,
+    "aridity": 0.939
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 1 (synthetic)",
+   "nearest_known_km": 589.5
+  },
+  {
+   "rank": 49,
+   "tile_id": "E00376",
+   "lat": 34.0132,
+   "lon": 104.5849,
+   "score": 0.5741,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.422,
+    "linearity": 0.993,
+    "dust": 0.365,
+    "aridity": 0.795
+   },
+   "novel": true,
+   "nearest_known": "Known crater site 1 (synthetic)",
+   "nearest_known_km": 2664.2
+  },
+  {
+   "rank": 50,
+   "tile_id": "E00358",
+   "lat": 23.4701,
+   "lon": 173.3649,
+   "score": 0.5717,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.478,
+    "linearity": 0.995,
+    "dust": 0.196,
+    "aridity": 0.929
+   },
+   "novel": true,
+   "nearest_known": "Known massif site 1 (synthetic)",
+   "nearest_known_km": 3571.3
+  }
+ ]
+}

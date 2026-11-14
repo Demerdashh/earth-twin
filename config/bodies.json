@@ -1,0 +1,14 @@
+{
+ "moon": {"label": "Moon", "limits": [
+  {"name": "Gravity", "text": "About 0.17 g on the Moon versus 1 g on Earth"},
+  {"name": "Atmosphere", "text": "Essentially a vacuum: no wind, no weathering by air, no air to carry heat"},
+  {"name": "Radiation", "text": "No thick air and no global magnetic field to shield the surface"},
+  {"name": "Temperature", "text": "54 °C in sunlight to −203 °C in shadowed craters (NASA Moon Base page); Earth’s record low is about −89 °C"}
+ ]},
+ "mars": {"label": "Mars", "limits": [
+  {"name": "Gravity", "text": "About 0.38 g on Mars versus 1 g on Earth"},
+  {"name": "Atmosphere", "text": "About 1% as dense as Earth's (NASA JPL), mostly carbon dioxide"},
+  {"name": "Radiation", "text": "Thin air and no global magnetic field to shield the surface"},
+  {"name": "Water", "text": "Liquid water is not stable on the surface today; Earth analogs always hold some moisture"}
+ ]}
+}

@@ -1,0 +1,90 @@
+{
+ "tile_id": "E00351",
+ "target": "medusae_fossae",
+ "target_label": "Medusae Fossae Formation (yardangs)",
+ "task": "wind_erosion_science",
+ "task_label": "Wind-erosion science",
+ "score": 0.8777,
+ "strong_for": [
+  "Terrain shape",
+  "Dryness (no vegetation)",
+  "Wind-aligned texture",
+  "Dust"
+ ],
+ "bars": [
+  {
+   "dimension": "terrain_shape",
+   "label": "Terrain shape",
+   "weight": 0.4,
+   "score": 0.851,
+   "status": "strong"
+  },
+  {
+   "dimension": "aridity",
+   "label": "Dryness (no vegetation)",
+   "weight": 0.25,
+   "score": 0.869,
+   "status": "strong",
+   "earth_value": 0.042,
+   "target_value": 0.0,
+   "unit": "NDVI"
+  },
+  {
+   "dimension": "linearity",
+   "label": "Wind-aligned texture",
+   "weight": 0.2,
+   "score": 0.918,
+   "status": "strong",
+   "earth_value": 0.792,
+   "target_value": 0.854,
+   "unit": ""
+  },
+  {
+   "dimension": "dust",
+   "label": "Dust",
+   "weight": 0.15,
+   "score": 0.913,
+   "status": "strong",
+   "earth_value": 0.736,
+   "target_value": 0.8,
+   "unit": "AOD"
+  }
+ ],
+ "breaks": [
+  {
+   "dimension": "gravity",
+   "kind": "fixed",
+   "text": "About 0.38 g on Mars versus 1 g on Earth"
+  },
+  {
+   "dimension": "atmosphere",
+   "kind": "fixed",
+   "text": "About 1% as dense as Earth's (NASA JPL), mostly carbon dioxide"
+  },
+  {
+   "dimension": "radiation",
+   "kind": "fixed",
+   "text": "Thin air and no global magnetic field to shield the surface"
+  },
+  {
+   "dimension": "water",
+   "kind": "fixed",
+   "text": "Liquid water is not stable on the surface today; Earth analogs always hold some moisture"
+  }
+ ],
+ "tests": [
+  "Measure yardang shapes and erosion rates and compare them with Martian ones",
+  "Calibrate rover cameras on wind-carved layered rock",
+  "Compare dune and ripple migration with orbital change detection"
+ ],
+ "nearest_known": {
+  "name": "Known yardang site 3 (synthetic)",
+  "km": 2466.2,
+  "novel": true
+ },
+ "images": {
+  "earth": "/img/earth_E00351.png",
+  "target": "/img/target_medusae_fossae.png"
+ },
+ "synthetic": true
+}

@@ -1,0 +1,379 @@
+{
+ "synthetic": true,
+ "embedder": "descriptors",
+ "results": {
+  "shackleton_rim__rover_mobility": {
+   "auc": 0.9485475764545532,
+   "n_positive": 42,
+   "known_sites": [
+    {
+     "site": "Known crater site 1 (synthetic)",
+     "best_score": 0.4899,
+     "percentile": 95.7,
+     "top_percent": 4.3
+    },
+    {
+     "site": "Known crater site 2 (synthetic)",
+     "best_score": 0.8543,
+     "percentile": 99.7,
+     "top_percent": 0.3
+    },
+    {
+     "site": "Known crater site 3 (synthetic)",
+     "best_score": 0.7373,
+     "percentile": 97.5,
+     "top_percent": 2.5
+    },
+    {
+     "site": "Known crater cold site 1 (synthetic)",
+     "best_score": 0.1715,
+     "percentile": 73.7,
+     "top_percent": 26.3
+    },
+    {
+     "site": "Known crater cold site 2 (synthetic)",
+     "best_score": 0.4776,
+     "percentile": 95.5,
+     "top_percent": 4.5
+    },
+    {
+     "site": "Known crater cold site 3 (synthetic)",
+     "best_score": 0.7277,
+     "percentile": 97.3,
+     "top_percent": 2.7
+    }
+   ],
+   "ablation": {
+    "dimension": "terrain_shape",
+    "auc_with": 0.9485475764545532,
+    "auc_without": 0.9896498849987222
+   }
+  },
+  "shackleton_rim__ice_prospecting": {
+   "auc": 0.881293125479172,
+   "n_positive": 42,
+   "known_sites": [
+    {
+     "site": "Known crater site 1 (synthetic)",
+     "best_score": 0.1102,
+     "percentile": 73.4,
+     "top_percent": 26.6
+    },
+    {
+     "site": "Known crater site 2 (synthetic)",
+     "best_score": 0.1858,
+     "percentile": 87.0,
+     "top_percent": 13.0
+    },
+    {
+     "site": "Known crater site 3 (synthetic)",
+     "best_score": 0.18,
+     "percentile": 86.0,
+     "top_percent": 14.0
+    },
+    {
+     "site": "Known crater cold site 1 (synthetic)",
+     "best_score": 0.4383,
+     "percentile": 98.0,
+     "top_percent": 2.0
+    },
+    {
+     "site": "Known crater cold site 2 (synthetic)",
+     "best_score": 0.7492,
+     "percentile": 98.8,
+     "top_percent": 1.2
+    },
+    {
+     "site": "Known crater cold site 3 (synthetic)",
+     "best_score": 0.8469,
+     "percentile": 99.3,
+     "top_percent": 0.7
+    }
+   ],
+   "ablation": {
+    "dimension": "terrain_shape",
+    "auc_with": 0.881293125479172,
+    "auc_without": 0.7975551580202743
+   }
+  },
+  "shackleton_rim__base_construction": {
+   "auc": 0.9781923502853735,
+   "n_positive": 42,
+   "known_sites": [
+    {
+     "site": "Known crater site 1 (synthetic)",
+     "best_score": 0.5298,
+     "percentile": 95.2,
+     "top_percent": 4.8
+    },
+    {
+     "site": "Known crater site 2 (synthetic)",
+     "best_score": 0.747,
+     "percentile": 98.2,
+     "top_percent": 1.8
+    },
+    {
+     "site": "Known crater site 3 (synthetic)",
+     "best_score": 0.7198,
+     "percentile": 97.5,
+     "top_percent": 2.5
+    },
+    {
+     "site": "Known crater cold site 1 (synthetic)",
+     "best_score": 0.3366,
+     "percentile": 89.9,
+     "top_percent": 10.1
+    },
+    {
+     "site": "Known crater cold site 2 (synthetic)",
+     "best_score": 0.6198,
+     "percentile": 96.0,
+     "top_percent": 4.0
+    },
+    {
+     "site": "Known crater cold site 3 (synthetic)",
+     "best_score": 0.7067,
+     "percentile": 97.2,
+     "top_percent": 2.8
+    }
+   ],
+   "ablation": {
+    "dimension": "terrain_shape",
+    "auc_with": 0.9781923502853735,
+    "auc_without": 0.9917795382911662
+   }
+  },
+  "malapert_massif__rover_mobility": {
+   "auc": 0.9890957204124464,
+   "n_positive": 39,
+   "known_sites": [
+    {
+     "site": "Known massif site 1 (synthetic)",
+     "best_score": 0.2267,
+     "percentile": 92.7,
+     "top_percent": 7.3
+    },
+    {
+     "site": "Known massif site 2 (synthetic)",
+     "best_score": 0.2939,
+     "percentile": 93.8,
+     "top_percent": 6.2
+    },
+    {
+     "site": "Known massif site 3 (synthetic)",
+     "best_score": 0.3148,
+     "percentile": 94.3,
+     "top_percent": 5.7
+    }
+   ],
+   "ablation": {
+    "dimension": "terrain_shape",
+    "auc_with": 0.9890957204124464,
+    "auc_without": 0.9740852267542659
+   }
+  },
+  "malapert_massif__base_construction": {
+   "auc": 0.9838488913222009,
+   "n_positive": 39,
+   "known_sites": [
+    {
+     "site": "Known massif site 1 (synthetic)",
+     "best_score": 0.1892,
+     "percentile": 92.0,
+     "top_percent": 8.0
+    },
+    {
+     "site": "Known massif site 2 (synthetic)",
+     "best_score": 0.2375,
+     "percentile": 93.3,
+     "top_percent": 6.7
+    },
+    {
+     "site": "Known massif site 3 (synthetic)",
+     "best_score": 0.2834,
+     "percentile": 94.8,
+     "top_percent": 5.2
+    }
+   ],
+   "ablation": {
+    "dimension": "terrain_shape",
+    "auc_with": 0.9838488913222009,
+    "auc_without": 0.9312437266173921
+   }
+  },
+  "medusae_fossae__wind_erosion_science": {
+   "auc": 0.9880936454849498,
+   "n_positive": 26,
+   "known_sites": [
+    {
+     "site": "Known yardang site 1 (synthetic)",
+     "best_score": 0.8702,
+     "percentile": 98.8,
+     "top_percent": 1.2
+    },
+    {
+     "site": "Known yardang site 2 (synthetic)",
+     "best_score": 0.8689,
+     "percentile": 98.7,
+     "top_percent": 1.3
+    },
+    {
+     "site": "Known yardang site 3 (synthetic)",
+     "best_score": 0.7609,
+     "percentile": 97.5,
+     "top_percent": 2.5
+    }
+   ],
+   "ablation": {
+    "dimension": "terrain_shape",
+    "auc_with": 0.9880936454849498,
+    "auc_without": 0.9509030100334448
+   }
+  },
+  "medusae_fossae__dust_mitigation": {
+   "auc": 0.9579264214046823,
+   "n_positive": 26,
+   "known_sites": [
+    {
+     "site": "Known yardang site 1 (synthetic)",
+     "best_score": 0.7844,
+     "percentile": 98.5,
+     "top_percent": 1.5
+    },
+    {
+     "site": "Known yardang site 2 (synthetic)",
+     "best_score": 0.8458,
+     "percentile": 99.5,
+     "top_percent": 0.5
+    },
+    {
+     "site": "Known yardang site 3 (synthetic)",
+     "best_score": 0.5236,
+     "percentile": 92.2,
+     "top_percent": 7.8
+    }
+   ],
+   "ablation": {
+    "dimension": "terrain_shape",
+    "auc_with": 0.9579264214046823,
+    "auc_without": 0.9346488294314381
+   }
+  },
+  "medusae_fossae__rover_mobility": {
+   "auc": 0.9870903010033445,
+   "n_positive": 26,
+   "known_sites": [
+    {
+     "site": "Known yardang site 1 (synthetic)",
+     "best_score": 0.8165,
+     "percentile": 99.8,
+     "top_percent": 0.2
+    },
+    {
+     "site": "Known yardang site 2 (synthetic)",
+     "best_score": 0.6613,
+     "percentile": 95.3,
+     "top_percent": 4.7
+    },
+    {
+     "site": "Known yardang site 3 (synthetic)",
+     "best_score": 0.7126,
+     "percentile": 97.7,
+     "top_percent": 2.3
+    }
+   ],
+   "ablation": {
+    "dimension": "terrain_shape",
+    "auc_with": 0.9870903010033445,
+    "auc_without": 0.9333779264214047
+   }
+  },
+  "arcadia_planitia__ice_prospecting": {
+   "auc": 0.9986206896551724,
+   "n_positive": 50,
+   "known_sites": [
+    {
+     "site": "Known plain icy site 1 (synthetic)",
+     "best_score": 0.5319,
+     "percentile": 93.2,
+     "top_percent": 6.8
+    },
+    {
+     "site": "Known plain icy site 2 (synthetic)",
+     "best_score": 0.7322,
+     "percentile": 96.8,
+     "top_percent": 3.2
+    },
+    {
+     "site": "Known plain icy site 3 (synthetic)",
+     "best_score": 0.5502,
+     "percentile": 94.3,
+     "top_percent": 5.7
+    }
+   ],
+   "ablation": {
+    "dimension": "terrain_shape",
+    "auc_with": 0.9986206896551724,
+    "auc_without": 0.9782214156079855
+   }
+  },
+  "arcadia_planitia__base_construction": {
+   "auc": 0.8936479128856625,
+   "n_positive": 50,
+   "known_sites": [
+    {
+     "site": "Known plain icy site 1 (synthetic)",
+     "best_score": 0.5318,
+     "percentile": 73.2,
+     "top_percent": 26.8
+    },
+    {
+     "site": "Known plain icy site 2 (synthetic)",
+     "best_score": 0.7871,
+     "percentile": 94.2,
+     "top_percent": 5.8
+    },
+    {
+     "site": "Known plain icy site 3 (synthetic)",
+     "best_score": 0.5316,
+     "percentile": 73.0,
+     "top_percent": 27.0
+    }
+   ],
+   "ablation": {
+    "dimension": "terrain_shape",
+    "auc_with": 0.8936479128856625,
+    "auc_without": 0.7667150635208712
+   }
+  },
+  "arcadia_planitia__rover_mobility": {
+   "auc": 0.9154990925589837,
+   "n_positive": 50,
+   "known_sites": [
+    {
+     "site": "Known plain icy site 1 (synthetic)",
+     "best_score": 0.4384,
+     "percentile": 71.7,
+     "top_percent": 28.3
+    },
+    {
+     "site": "Known plain icy site 2 (synthetic)",
+     "best_score": 0.8006,
+     "percentile": 96.2,
+     "top_percent": 3.8
+    },
+    {
+     "site": "Known plain icy site 3 (synthetic)",
+     "best_score": 0.5412,
+     "percentile": 77.2,
+     "top_percent": 22.8
+    }
+   ],
+   "ablation": {
+    "dimension": "terrain_shape",
+    "auc_with": 0.9154990925589837,
+    "auc_without": 0.7577495462794919
+   }
+  }
+ }
+}

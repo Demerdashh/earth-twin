@@ -1,0 +1,16 @@
+{
+ "generated": "2026-11-10T01:13:49+00:00",
+ "synthetic": true,
+ "embedder": "descriptors",
+ "res_m": 463.0,
+ "tile_px": 64,
+ "earth_tiles": 601,
+ "targets": [
+  "shackleton_rim",
+  "malapert_massif",
+  "medusae_fossae",
+  "arcadia_planitia"
+ ],
+ "novelty_km": 200.0,
+ "images": 66
+}

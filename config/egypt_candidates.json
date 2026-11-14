@@ -1,0 +1,11 @@
+{
+ "_about": "Deep-dive sites in Egypt's Western Desert. Kamil Crater's position is from the 2011 Geology paper (22°01'06\"N, 26°05'15\"E); the rest are APPROXIMATE centres to refine on a map before cutting high-resolution tiles.",
+ "sites": [
+  {"name": "Kharga Depression", "lat": 25.45, "lon": 30.55, "analog_for": ["medusae_fossae"], "note": "Yardangs, dune trains, wind-cut channels (USGS field studies, 1984)"},
+  {"name": "Kamil Crater", "lat": 22.0183, "lon": 26.0875, "analog_for": ["shackleton_rim"], "note": "45 m rayed impact crater, about 5,000 years old; needs imagery or a 30 m DEM, too small for 463 m tiles"},
+  {"name": "Gilf Kebir plateau", "lat": 23.3, "lon": 25.9, "analog_for": ["medusae_fossae"], "note": "Fluvial and wind erosion studied in the 1978 expedition"},
+  {"name": "Great Sand Sea", "lat": 26.0, "lon": 25.0, "analog_for": ["medusae_fossae"], "note": "Dune belts compared with Viking images of Martian dunes"},
+  {"name": "White Desert (Farafra)", "lat": 27.3, "lon": 28.1, "analog_for": ["medusae_fossae"], "note": "Wind-sculpted chalk inselbergs"},
+  {"name": "Black Desert", "lat": 28.1, "lon": 28.9, "analog_for": ["shackleton_rim"], "note": "Dark basalt-capped hills; check before using"}
+ ]
+}

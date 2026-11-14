@@ -1,0 +1,104 @@
+{
+ "tile_id": "E00541",
+ "target": "arcadia_planitia",
+ "target_label": "Arcadia Planitia (buried ice)",
+ "task": "base_construction",
+ "task_label": "Base construction",
+ "score": 0.8714,
+ "strong_for": [
+  "Slope",
+  "Terrain shape"
+ ],
+ "bars": [
+  {
+   "dimension": "slope",
+   "label": "Slope",
+   "weight": 0.3,
+   "score": 0.999,
+   "status": "strong",
+   "earth_value": 0.176,
+   "target_value": 0.321,
+   "unit": "°"
+  },
+  {
+   "dimension": "thermal_range",
+   "label": "Temperature swing",
+   "weight": 0.2,
+   "score": 0.95,
+   "status": "closest on Earth",
+   "earth_value": 63.197,
+   "target_value": 90,
+   "unit": "°C",
+   "note": "No place on Earth reaches the target value; scored against the closest places on Earth"
+  },
+  {
+   "dimension": "terrain_shape",
+   "label": "Terrain shape",
+   "weight": 0.2,
+   "score": 1.0,
+   "status": "strong"
+  },
+  {
+   "dimension": "relief",
+   "label": "Relief",
+   "weight": 0.15,
+   "score": 0.695,
+   "status": "partial",
+   "earth_value": 30.869,
+   "target_value": 56.09,
+   "unit": "m"
+  },
+  {
+   "dimension": "aridity",
+   "label": "Dryness (no vegetation)",
+   "weight": 0.15,
+   "score": 0.616,
+   "status": "partial",
+   "earth_value": 0.079,
+   "target_value": 0.0,
+   "unit": "NDVI"
+  }
+ ],
+ "breaks": [
+  {
+   "dimension": "thermal_range",
+   "kind": "unreachable",
+   "text": "Temperature swing: the target is 90.0 °C; the closest anywhere on Earth is 72.5 °C"
+  },
+  {
+   "dimension": "gravity",
+   "kind": "fixed",
+   "text": "About 0.38 g on Mars versus 1 g on Earth"
+  },
+  {
+   "dimension": "atmosphere",
+   "kind": "fixed",
+   "text": "About 1% as dense as Earth's (NASA JPL), mostly carbon dioxide"
+  },
+  {
+   "dimension": "radiation",
+   "kind": "fixed",
+   "text": "Thin air and no global magnetic field to shield the surface"
+  },
+  {
+   "dimension": "water",
+   "kind": "fixed",
+   "text": "Liquid water is not stable on the surface today; Earth analogs always hold some moisture"
+  }
+ ],
+ "tests": [
+  "Level and stabilise a landing pad on similar slopes",
+  "Cure construction material made from local loose rock and dust",
+  "Load-test structures through large day-night temperature swings"
+ ],
+ "nearest_known": {
+  "name": "Known crater cold site 3 (synthetic)",
+  "km": 1186.1,
+  "novel": true
+ },
+ "images": {
+  "earth": "/img/earth_E00541.png",
+  "target": "/img/target_arcadia_planitia.png"
+ },
+ "synthetic": true
+}

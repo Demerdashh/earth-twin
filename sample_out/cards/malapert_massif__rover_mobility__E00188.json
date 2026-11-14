@@ -1,0 +1,108 @@
+{
+ "tile_id": "E00188",
+ "target": "malapert_massif",
+ "target_label": "Malapert Massif",
+ "task": "rover_mobility",
+ "task_label": "Rover mobility",
+ "score": 0.4465,
+ "strong_for": [
+  "Terrain shape",
+  "Roughness"
+ ],
+ "bars": [
+  {
+   "dimension": "terrain_shape",
+   "label": "Terrain shape",
+   "weight": 0.3,
+   "score": 0.987,
+   "status": "strong"
+  },
+  {
+   "dimension": "slope",
+   "label": "Slope",
+   "weight": 0.25,
+   "score": 0.292,
+   "status": "breaks",
+   "earth_value": 8.839,
+   "target_value": 15.113,
+   "unit": "°"
+  },
+  {
+   "dimension": "roughness",
+   "label": "Roughness",
+   "weight": 0.2,
+   "score": 0.886,
+   "status": "strong",
+   "earth_value": 90.766,
+   "target_value": 121.921,
+   "unit": "m"
+  },
+  {
+   "dimension": "aridity",
+   "label": "Dryness (no vegetation)",
+   "weight": 0.15,
+   "score": 0.064,
+   "status": "breaks",
+   "earth_value": 0.188,
+   "target_value": 0.0,
+   "unit": "NDVI"
+  },
+  {
+   "dimension": "relief",
+   "label": "Relief",
+   "weight": 0.1,
+   "score": 0.562,
+   "status": "partial",
+   "earth_value": 2237.068,
+   "target_value": 4742.79,
+   "unit": "m"
+  }
+ ],
+ "breaks": [
+  {
+   "dimension": "slope",
+   "kind": "data",
+   "text": "Slope: here 8.8 °, target 15.1 °"
+  },
+  {
+   "dimension": "aridity",
+   "kind": "data",
+   "text": "Dryness (no vegetation): here 0.19 NDVI, target 0.00 NDVI"
+  },
+  {
+   "dimension": "gravity",
+   "kind": "fixed",
+   "text": "About 0.17 g on the Moon versus 1 g on Earth"
+  },
+  {
+   "dimension": "atmosphere",
+   "kind": "fixed",
+   "text": "Essentially a vacuum: no wind, no weathering by air, no air to carry heat"
+  },
+  {
+   "dimension": "radiation",
+   "kind": "fixed",
+   "text": "No thick air and no global magnetic field to shield the surface"
+  },
+  {
+   "dimension": "temperature",
+   "kind": "fixed",
+   "text": "54 °C in sunlight to −203 °C in shadowed craters (NASA Moon Base page); Earth’s record low is about −89 °C"
+  }
+ ],
+ "tests": [
+  "Drive a prototype rover across slopes like the target's and log wheel slip",
+  "Train hazard detection on crater rims and blocky ground",
+  "Plan traverses using only orbital-resolution maps, then check them on the ground"
+ ],
+ "nearest_known": {
+  "name": "Known plain icy site 2 (synthetic)",
+  "km": 2383.5,
+  "novel": true
+ },
+ "images": {
+  "earth": "/img/earth_E00188.png",
+  "target": "/img/target_malapert_massif.png"
+ },
+ "synthetic": true
+}

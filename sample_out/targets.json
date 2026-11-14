@@ -1,0 +1,99 @@
+{
+ "synthetic": true,
+ "targets": [
+  {
+   "key": "shackleton_rim",
+   "label": "Shackleton crater rim",
+   "body": "moon",
+   "lat": -89.67,
+   "lon": 129.78,
+   "tasks": [
+    "rover_mobility",
+    "ice_prospecting",
+    "base_construction"
+   ],
+   "profile": {
+    "lst_range_c": 257,
+    "lst_min_c": -203,
+    "ndvi_mean": 0.0,
+    "ground_ice": 1.0,
+    "slope_p50": 3.368,
+    "tri_mean": 84.252,
+    "relief": 3960.586,
+    "anisotropy": 0.005
+   },
+   "image": "/img/target_shackleton_rim.png",
+   "notes": "SYNTHETIC terrain standing in for the real DEM tile"
+  },
+  {
+   "key": "malapert_massif",
+   "label": "Malapert Massif",
+   "body": "moon",
+   "lat": null,
+   "lon": null,
+   "tasks": [
+    "rover_mobility",
+    "base_construction"
+   ],
+   "profile": {
+    "lst_range_c": 257,
+    "lst_min_c": -203,
+    "ndvi_mean": 0.0,
+    "slope_p50": 15.113,
+    "tri_mean": 121.921,
+    "relief": 4742.79,
+    "anisotropy": 0.172
+   },
+   "image": "/img/target_malapert_massif.png",
+   "notes": "SYNTHETIC terrain standing in for the real DEM tile"
+  },
+  {
+   "key": "medusae_fossae",
+   "label": "Medusae Fossae Formation (yardangs)",
+   "body": "mars",
+   "lat": 11.0,
+   "lon": -159.0,
+   "tasks": [
+    "wind_erosion_science",
+    "dust_mitigation",
+    "rover_mobility"
+   ],
+   "profile": {
+    "lst_range_c": 100,
+    "lst_min_c": -90,
+    "ndvi_mean": 0.0,
+    "dust_aod": 0.8,
+    "slope_p50": 0.574,
+    "tri_mean": 13.66,
+    "relief": 230.439,
+    "anisotropy": 0.854
+   },
+   "image": "/img/target_medusae_fossae.png",
+   "notes": "SYNTHETIC terrain standing in for the real DEM tile"
+  },
+  {
+   "key": "arcadia_planitia",
+   "label": "Arcadia Planitia (buried ice)",
+   "body": "mars",
+   "lat": 47.0,
+   "lon": -175.0,
+   "tasks": [
+    "ice_prospecting",
+    "base_construction",
+    "rover_mobility"
+   ],
+   "profile": {
+    "lst_range_c": 90,
+    "lst_min_c": -110,
+    "ndvi_mean": 0.0,
+    "ground_ice": 1.0,
+    "slope_p50": 0.321,
+    "tri_mean": 4.705,
+    "relief": 56.09,
+    "anisotropy": 0.003
+   },
+   "image": "/img/target_arcadia_planitia.png",
+   "notes": "SYNTHETIC terrain standing in for the real DEM tile"
+  }
+ ]
+}

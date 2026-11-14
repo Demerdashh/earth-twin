@@ -1,0 +1,106 @@
+{
+ "tile_id": "E00383",
+ "target": "malapert_massif",
+ "target_label": "Malapert Massif",
+ "task": "base_construction",
+ "task_label": "Base construction",
+ "score": 0.4344,
+ "strong_for": [],
+ "bars": [
+  {
+   "dimension": "slope",
+   "label": "Slope",
+   "weight": 0.3,
+   "score": 0.194,
+   "status": "breaks",
+   "earth_value": 7.874,
+   "target_value": 15.113,
+   "unit": "°"
+  },
+  {
+   "dimension": "thermal_range",
+   "label": "Temperature swing",
+   "weight": 0.2,
+   "score": 0.953,
+   "status": "closest on Earth",
+   "earth_value": 63.456,
+   "target_value": 257,
+   "unit": "°C",
+   "note": "No place on Earth reaches the target value; scored against the closest places on Earth"
+  },
+  {
+   "dimension": "terrain_shape",
+   "label": "Terrain shape",
+   "weight": 0.2,
+   "score": 0.469,
+   "status": "partial"
+  },
+  {
+   "dimension": "relief",
+   "label": "Relief",
+   "weight": 0.15,
+   "score": 0.498,
+   "status": "partial",
+   "earth_value": 2076.231,
+   "target_value": 4742.79,
+   "unit": "m"
+  },
+  {
+   "dimension": "aridity",
+   "label": "Dryness (no vegetation)",
+   "weight": 0.15,
+   "score": 0.598,
+   "status": "partial",
+   "earth_value": 0.081,
+   "target_value": 0.0,
+   "unit": "NDVI"
+  }
+ ],
+ "breaks": [
+  {
+   "dimension": "slope",
+   "kind": "data",
+   "text": "Slope: here 7.9 °, target 15.1 °"
+  },
+  {
+   "dimension": "thermal_range",
+   "kind": "unreachable",
+   "text": "Temperature swing: the target is 257 °C; the closest anywhere on Earth is 72.5 °C"
+  },
+  {
+   "dimension": "gravity",
+   "kind": "fixed",
+   "text": "About 0.17 g on the Moon versus 1 g on Earth"
+  },
+  {
+   "dimension": "atmosphere",
+   "kind": "fixed",
+   "text": "Essentially a vacuum: no wind, no weathering by air, no air to carry heat"
+  },
+  {
+   "dimension": "radiation",
+   "kind": "fixed",
+   "text": "No thick air and no global magnetic field to shield the surface"
+  },
+  {
+   "dimension": "temperature",
+   "kind": "fixed",
+   "text": "54 °C in sunlight to −203 °C in shadowed craters (NASA Moon Base page); Earth’s record low is about −89 °C"
+  }
+ ],
+ "tests": [
+  "Level and stabilise a landing pad on similar slopes",
+  "Cure construction material made from local loose rock and dust",
+  "Load-test structures through large day-night temperature swings"
+ ],
+ "nearest_known": {
+  "name": "Known crater cold site 3 (synthetic)",
+  "km": 0.0,
+  "novel": false
+ },
+ "images": {
+  "earth": "/img/earth_E00383.png",
+  "target": "/img/target_malapert_massif.png"
+ },
+ "synthetic": true
+}
