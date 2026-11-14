@@ -10,7 +10,7 @@ strict = true
 files = ["pipeline"]
 
 [[tool.mypy.overrides]]
-module = ["jsonschema.*", "referencing.*", "PIL.*"]
+module = ["jsonschema.*", "referencing.*", "PIL.*", "ee", "ee.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
