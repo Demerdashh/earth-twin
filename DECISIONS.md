@@ -22,3 +22,7 @@ One line per decision, added in the same commit as the change.
 | Sun 10:00 | Globe textures are built once from NASA tiles (`npm run textures`, WebP, about 1.1 MB); region close-ups stream live Trek/GIBS tiles | Fast first view; sharp detail only where you dive in |
 | Sun 10:00 | Deploy on Vercel (`vercel.json`) | Team choice; GitHub Actions only runs checks |
 | Sun 10:00 | Local setup installs the `uv.lock` pins with pip into `tools/python` | uv's cache renames are blocked by antivirus on some Windows laptops |
+| Sun 13:00 | No orbiting camera: drag turns the planet under the cursor, drag on space pans, wheel zooms to the cursor; view level follows the camera | Each planet moves on its own; scrolling out of a region never gets stuck |
+| Sun 13:00 | Earth from Blue Marble NG (day), VIIRS Black Marble 2016 (night lights) and OSM land mask (ocean glint), all via GIBS | More realistic than the shaded-relief layer; still display only |
+| Sun 13:00 | No top bar and no permanent lines: arcs appear only for the hovered or open region; data status lives in About and the target card | Cleaner presentation; status still visible where it matters |
+| Sun 13:00 | Palette: Xiketic, Space Cadet, Purple Navy, Dark Blue Gray with white and black | Team visual direction |

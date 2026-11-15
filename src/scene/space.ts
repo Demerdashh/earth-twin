@@ -1,6 +1,12 @@
-// One three.js scene holding the Moon, Earth and Mars together (not to scale), the dotted regions
-// on each body, and glowing arcs that link every Mars/Moon target to its Earth analogs.
-// Views: "system" (all three), "body" (one globe), "region" (dived into one dotted area).
+// One three.js scene with the Moon, Earth and Mars side by side (not to scale).
+//
+// Interaction (no orbiting camera, so nothing moves unless you move it):
+//   drag a planet       turn that planet only
+//   drag empty space    pan left / right / up / down
+//   wheel / pinch       zoom toward the cursor, freely in and out
+//   click               a planet to frame it, a dotted region to dive into it
+// The view level (system / body / region) is derived from where the camera actually is, so zooming
+// out of a region or a planet simply takes you back up, and the UI follows.
 import {
   ACESFilmicToneMapping,
   AmbientLight,
@@ -10,13 +16,13 @@ import {
   DirectionalLight,
   Group,
   Line,
-  LineBasicMaterial,
-  LineLoop,
+  Matrix4,
   Mesh,
   MeshStandardMaterial,
-  Object3D,
   PerspectiveCamera,
+  Plane,
   Points,
+  Quaternion,
   Raycaster,
   SRGBColorSpace,
   Scene,
@@ -26,41 +32,61 @@ import {
   Vector2,
   Vector3,
   WebGLRenderer,
+  type Material,
 } from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { IMAGERY, type Body } from '../data/config';
 import type { Link, Region, RegionKind } from '../data/regions';
 import { angularDistanceDeg, easeInOutCubic, latLonToVec3, vec3ToLatLon } from './geo';
-import { arcMaterial, atmosphereMaterial, num, regionMaterial, starMaterial } from './materials';
+import { arcMaterial, atmosphereMaterial, earthMaterial, num, regionMaterial, starMaterial } from './materials';
 import { RegionPatch } from './patch';
 
 export type View = 'system' | 'body' | 'region';
+export interface BodyTextures {
+  moon: Texture;
+  mars: Texture;
+  earth: Texture;
+  earthNight: Texture;
+  earthWater: Texture;
+}
 
 /** Not to scale: sizes chosen for legibility, ordered like the real bodies. */
-export const BODY_RADIUS: Record<Body, number> = { earth: 1, mars: 0.62, moon: 0.42 };
+export const BODY_RADIUS: Record<Body, number> = { earth: 1, mars: 0.66, moon: 0.46 };
 const BODY_CENTER: Record<Body, Vector3> = {
-  moon: new Vector3(-3.15, 0.35, -0.6),
+  moon: new Vector3(-3.05, 0, 0),
   earth: new Vector3(0, 0, 0),
-  mars: new Vector3(3.45, -0.2, -1.1),
+  mars: new Vector3(3.2, 0, 0),
 };
-const BODY_TINT: Record<Body, string> = { earth: '#7fd0ff', moon: '#d9e1ec', mars: '#ff9d6e' };
-const SPIN: Record<Body, number> = { earth: 0.045, moon: 0.02, mars: 0.035 };
+const BODY_TINT: Record<Body, string> = { earth: '#cfe3ff', moon: '#e6e8f2', mars: '#ffc4a8' };
 export const KIND_COLOR: Record<RegionKind, string> = {
   target: '#ffffff',
-  known: '#5fe0a6',
-  egypt: '#f6c766',
-  ranked: '#8fe7ff',
+  known: '#9fe3d0',
+  egypt: '#ecd29a',
+  ranked: '#b9bcff',
 };
+/** Sunlight comes from the upper left, slightly in front: every body shows a terminator. */
+const LIGHT_DIR = new Vector3(-0.72, 0.42, 0.9).normalize();
+const SYSTEM_CAM = new Vector3(0.08, 0, 8.6);
+const MAX_Z = 13;
+const PAN_LIMIT = new Vector2(5.2, 3.2);
+/** Camera height above the surface when diving into a region, in body radii. */
+const REGION_ALTITUDE: Record<Body | 'ranked', number> = { earth: 0.26, mars: 0.32, moon: 0.34, ranked: 0.12 };
+const BODY_FRAME = 4.3; // camera distance when framing a body, in radii
+const ARC_SEGMENTS = 72;
+const IDLE_SPIN = 0.035; // rad/s, system view only, until the user touches that body
+const Y = new Vector3(0, 1, 0);
+const X = new Vector3(1, 0, 0);
+const tmp = new Vector3();
+const tmp2 = new Vector3();
 
 interface BodyNode {
-  pivot: Group; // spins; regions, arcs endpoints and patches live in its frame
-  mesh: Mesh<SphereGeometry, MeshStandardMaterial>;
+  pivot: Group;
+  mesh: Mesh;
   radius: number;
 }
 interface RegionNode {
   region: Region;
   points: Points<BufferGeometry, ShaderMaterial>;
-  local: Vector3; // centre in body-local coordinates (surface)
+  local: Vector3; // surface point in body-local coordinates
 }
 interface ArcNode {
   link: Link;
@@ -68,93 +94,88 @@ interface ArcNode {
   from: RegionNode;
   to: RegionNode;
 }
-interface Pose {
-  position: Vector3;
-  target: Vector3;
+interface Flight {
+  path: CubicBezierCurve3;
+  t: number;
+  dur: number;
+  done: () => void;
 }
-
-const ARC_SEGMENTS = 72;
-/** Side of each body facing away from the others: close-ups are framed from there. */
-const AWAY_SIDE: Record<Body, Vector3> = {
-  earth: new Vector3(0, 0, 1),
-  moon: new Vector3(-1, 0, 0.45).normalize(),
-  mars: new Vector3(1, 0, 0.5).normalize(),
-};
-const Y_AXIS = new Vector3(0, 1, 0);
-/** Camera height above the surface when diving into a region, in body radii. */
-const REGION_ALTITUDE: Record<Body | 'ranked', number> = { earth: 0.24, mars: 0.3, moon: 0.32, ranked: 0.1 };
-const SYSTEM_POSE: Pose = { position: new Vector3(0.35, 1.5, 10.4), target: new Vector3(0.15, 0, -0.45) };
-const tmpA = new Vector3();
-const tmpB = new Vector3();
-const tmpC = new Vector3();
-const tmpD = new Vector3();
+export interface SpaceEvents {
+  click(hit: { body: Body; region: Region | null } | null): void;
+  /** The camera moved into another view level (by flight, scroll or pan). */
+  view(view: View, body: Body | null): void;
+  /** Any direct manipulation (drag, wheel, pinch). */
+  interact(): void;
+}
 
 export class Space {
   readonly renderer: WebGLRenderer;
-  readonly camera = new PerspectiveCamera(32, 1, 0.005, 2000);
+  readonly camera = new PerspectiveCamera(36, 1, 0.01, 2000);
   private readonly scene = new Scene();
-  private readonly controls: OrbitControls;
-  private readonly key = new DirectionalLight('#fff6ea', 2.7);
   private readonly bodies = {} as Record<Body, BodyNode>;
   private regions = new Map<string, RegionNode>();
   private arcs: ArcNode[] = [];
-  private stars: Points<BufferGeometry, ShaderMaterial>;
-  private orbit: LineLoop<BufferGeometry, LineBasicMaterial>;
+  private readonly stars: Points<BufferGeometry, ShaderMaterial>;
   private readonly patch = new RegionPatch();
   private readonly raycaster = new Raycaster();
+  private readonly camGoal = SYSTEM_CAM.clone();
+  private readonly turnTo = new Map<Body, Quaternion>();
+  private flight: Flight | null = null;
   private time = 0;
   private last = performance.now();
-  private frame = 0;
-  private flight: { from: Pose; to: Pose; t: number; dur: number; path?: CubicBezierCurve3; done: () => void } | null =
-    null;
 
   view: View = 'system';
   focusBody: Body | null = null;
   selected: string | null = null;
   hovered: string | null = null;
   regionsVisible = true;
-  /** Close-up orientation per body (radians about Y); cleared in the system view so they spin. */
-  private turnTo: Partial<Record<Body, number>> = {};
-  /** Arcs in focus (selected/hovered region, or a target set); null = default per view. */
-  private emphasis: Set<string> | null = null;
+  /** Gentle spin until the first interaction; after that nothing moves unless you move it. */
+  private idle = true;
 
   constructor(
     private readonly host: HTMLElement,
-    textures: Record<Body, Texture>,
+    textures: BodyTextures,
+    private readonly events: SpaceEvents,
   ) {
     const pr = Math.min(window.devicePixelRatio || 1, 1.75);
     this.renderer = new WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(pr);
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.toneMapping = ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.08;
+    this.renderer.toneMappingExposure = 1.05;
     host.append(this.renderer.domElement);
 
-    this.scene.add(this.key, this.key.target, new AmbientLight('#8fa6c8', 0.16));
+    const sun = new DirectionalLight('#fff4e6', 2.9);
+    sun.position.copy(LIGHT_DIR).multiplyScalar(50);
+    this.scene.add(sun, new AmbientLight('#8c8fd0', 0.1));
     this.stars = this.makeStars(pr);
     this.scene.add(this.stars);
-    for (const body of ['moon', 'earth', 'mars'] as const) this.bodies[body] = this.makeBody(body, textures[body]);
-    this.orbit = this.makeMoonOrbit();
-    this.scene.add(this.orbit);
 
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.enableDamping = true;
-    this.controls.dampingFactor = 0.08;
-    this.controls.enablePan = false;
-    this.controls.rotateSpeed = 0.55;
-    this.controls.zoomSpeed = 0.7;
-    this.setPose(SYSTEM_POSE);
-    this.applyLimits();
+    const aniso = this.renderer.capabilities.getMaxAnisotropy();
+    const all = [textures.moon, textures.mars, textures.earth, textures.earthNight, textures.earthWater];
+    for (const t of all) {
+      t.anisotropy = aniso;
+      t.needsUpdate = true;
+    }
+    for (const t of [textures.moon, textures.mars, textures.earth, textures.earthNight]) t.colorSpace = SRGBColorSpace;
+    this.makeBody('earth', earthMaterial(textures.earth, textures.earthNight, textures.earthWater, LIGHT_DIR));
+    this.makeBody('moon', new MeshStandardMaterial({ map: textures.moon, roughness: 1, metalness: 0 }));
+    this.makeBody('mars', new MeshStandardMaterial({ map: textures.mars, roughness: 0.95, metalness: 0 }));
+    this.addAtmosphere('earth', '#6fa8ff', 0.95, 4.4, 1.022);
+    this.addAtmosphere('mars', '#e8a07a', 0.45, 4.2, 1.02);
 
+    this.camera.position.copy(SYSTEM_CAM);
+    this.camera.lookAt(SYSTEM_CAM.x, SYSTEM_CAM.y, 0);
     this.resize();
     window.addEventListener('resize', this.resize);
+    this.bindInput();
     this.renderer.setAnimationLoop(this.tick);
   }
 
   /* ------------------------------------------------------------ building */
 
   private makeStars(pr: number): Points<BufferGeometry, ShaderMaterial> {
-    const n = 3200;
+    const n = 2600;
     const pos = new Float32Array(n * 3);
     const size = new Float32Array(n);
     const phase = new Float32Array(n);
@@ -162,8 +183,8 @@ export class Space {
       const u = Math.random() * 2 - 1;
       const t = Math.random() * Math.PI * 2;
       const s = Math.sqrt(1 - u * u);
-      pos.set([s * Math.cos(t) * 600, u * 600, s * Math.sin(t) * 600], i * 3);
-      size[i] = 0.6 + Math.random() ** 3 * 2.4;
+      pos.set([s * Math.cos(t) * 600, u * 600, -Math.abs(s * Math.sin(t)) * 600 - 50], i * 3);
+      size[i] = 0.5 + Math.random() ** 4 * 2.2;
       phase[i] = Math.random() * 6.28;
     }
     const g = new BufferGeometry();
@@ -173,54 +194,23 @@ export class Space {
     return new Points(g, starMaterial(pr));
   }
 
-  private makeBody(body: Body, texture: Texture): BodyNode {
+  private makeBody(body: Body, material: Material): void {
     const radius = BODY_RADIUS[body];
     const pivot = new Group();
     pivot.position.copy(BODY_CENTER[body]);
-    texture.colorSpace = SRGBColorSpace;
-    texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
-    const mesh = new Mesh(
-      new SphereGeometry(radius, 128, 96),
-      new MeshStandardMaterial({ map: texture, roughness: body === 'earth' ? 0.78 : 0.95, metalness: 0 }),
-    );
+    const mesh = new Mesh(new SphereGeometry(radius, 128, 96), material);
     mesh.userData.body = body;
     pivot.add(mesh);
-    if (body !== 'moon') {
-      const atmo = new Mesh(
-        new SphereGeometry(radius * (body === 'earth' ? 1.035 : 1.02), 96, 64),
-        body === 'earth' ? atmosphereMaterial('#5fb6ff', 1.25, 3.2) : atmosphereMaterial('#ff9a6a', 0.55, 4.0),
-      );
-      pivot.add(atmo);
-    }
-    // Present the side with the sites that matter first.
-    pivot.rotation.y = body === 'earth' ? -0.45 : body === 'mars' ? -2.6 : 0.2;
+    // Present a meaningful side first (Africa and Egypt, Tharsis and Medusae, the near side).
+    pivot.quaternion.setFromAxisAngle(Y, body === 'earth' ? -0.52 : body === 'mars' ? 2.2 : 0.15);
     this.scene.add(pivot);
-    return { pivot, mesh, radius };
+    this.bodies[body] = { pivot, mesh, radius };
   }
 
-  /** A faint orbit line around Earth through the Moon (as in the reference: Earth, Moon, orbit). */
-  private makeMoonOrbit(): LineLoop<BufferGeometry, LineBasicMaterial> {
-    // A circle around Earth that passes through the Moon, tilted towards the viewer so it opens
-    // into a thin ellipse wrapping the planet.
-    const m = BODY_CENTER.moon;
-    const r = m.length();
-    const u = m.clone().normalize();
-    const w = new Vector3(0.15, -0.32, 1);
-    const v = w.sub(u.clone().multiplyScalar(w.dot(u))).normalize();
-    const pts: Vector3[] = [];
-    for (let i = 0; i < 256; i++) {
-      const a = (i / 256) * Math.PI * 2;
-      pts.push(
-        u
-          .clone()
-          .multiplyScalar(Math.cos(a) * r)
-          .addScaledVector(v, Math.sin(a) * r),
-      );
-    }
-    const g = new BufferGeometry().setFromPoints(pts);
-    return new LineLoop(
-      g,
-      new LineBasicMaterial({ color: '#cfdcf0', transparent: true, opacity: 0.12, depthWrite: false }),
+  private addAtmosphere(body: Body, color: string, strength: number, power: number, scale: number): void {
+    const node = this.bodies[body];
+    node.pivot.add(
+      new Mesh(new SphereGeometry(node.radius * scale, 96, 64), atmosphereMaterial(color, strength, power, LIGHT_DIR)),
     );
   }
 
@@ -255,11 +245,17 @@ export class Space {
       if (!from || !to) return;
       const g = new BufferGeometry();
       g.setAttribute('position', new BufferAttribute(new Float32Array((ARC_SEGMENTS + 1) * 3), 3));
-      const u = new Float32Array(ARC_SEGMENTS + 1).map((_, k) => k / ARC_SEGMENTS);
-      g.setAttribute('aU', new BufferAttribute(u, 1));
+      g.setAttribute(
+        'aU',
+        new BufferAttribute(
+          new Float32Array(ARC_SEGMENTS + 1).map((_, k) => k / ARC_SEGMENTS),
+          1,
+        ),
+      );
       const line = new Line(g, arcMaterial(BODY_TINT[from.region.body], KIND_COLOR[to.region.kind], i * 0.37));
       line.frustumCulled = false;
       line.renderOrder = 3;
+      line.visible = false;
       this.scene.add(line);
       this.arcs.push({ link, line, from, to });
     });
@@ -314,21 +310,18 @@ export class Space {
 
   setSelected(id: string | null): void {
     this.selected = id;
+    if (!id) this.patch.clear();
     this.refreshStates();
-  }
-
-  /** Emphasise the arcs touching these region ids (null = default for the view). */
-  setEmphasis(ids: string[] | null): void {
-    this.emphasis = ids ? new Set(ids) : null;
   }
 
   private refreshStates(): void {
     for (const [id, n] of this.regions) {
       n.points.visible = this.regionsVisible;
       num(n.points.material, 'uState').value = id === this.selected ? 2 : id === this.hovered ? 1 : 0;
-      // Inside a region, the others step back so the chosen one reads clearly.
+      // Inside a region the imagery leads: the open region's dots soften, the others step back.
+      const inside = this.view === 'region';
       num(n.points.material, 'uOpacity').value =
-        this.view === 'region' && id !== this.selected && id !== this.hovered ? 0.3 : 1;
+        id === this.selected ? (inside ? 0.45 : 1) : this.selected && id !== this.hovered ? 0.3 : 1;
     }
   }
 
@@ -338,160 +331,237 @@ export class Space {
 
   /* ------------------------------------------------------------ picking */
 
-  /** Region (or body) under a client point. */
-  pick(clientX: number, clientY: number): { body: Body; region: Region | null } | null {
+  private ndc(clientX: number, clientY: number): Vector2 {
     const rect = this.renderer.domElement.getBoundingClientRect();
-    const ndc = new Vector2(
-      ((clientX - rect.left) / rect.width) * 2 - 1,
-      -((clientY - rect.top) / rect.height) * 2 + 1,
-    );
-    this.raycaster.setFromCamera(ndc, this.camera);
+    return new Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+  }
+
+  private hitBody(clientX: number, clientY: number): { body: Body; point: Vector3 } | null {
+    this.raycaster.setFromCamera(this.ndc(clientX, clientY), this.camera);
     const hit = this.raycaster.intersectObjects(
       Object.values(this.bodies).map((b) => b.mesh),
       false,
     )[0];
+    return hit ? { body: hit.object.userData.body as Body, point: hit.point } : null;
+  }
+
+  /** Region (or body) under a client point. */
+  pick(clientX: number, clientY: number): { body: Body; region: Region | null } | null {
+    const hit = this.hitBody(clientX, clientY);
     if (!hit) return null;
-    const body = hit.object.userData.body as Body;
-    if (!this.regionsVisible) return { body, region: null };
-    const local = this.bodies[body].pivot.worldToLocal(hit.point.clone());
-    const { lat, lon } = vec3ToLatLon(local);
+    if (!this.regionsVisible) return { body: hit.body, region: null };
+    const { lat, lon } = vec3ToLatLon(this.bodies[hit.body].pivot.worldToLocal(hit.point.clone()));
     let best: Region | null = null;
     let bestD = Infinity;
     for (const { region } of this.regions.values()) {
-      if (region.body !== body) continue;
-      const d = angularDistanceDeg(lat, lon, region.lat, region.lon);
+      if (region.body !== hit.body) continue;
       const reach = Math.max(region.radiusDeg * 1.25, 1.6);
-      if (d <= reach && d / reach < bestD) {
+      const d = angularDistanceDeg(lat, lon, region.lat, region.lon) / reach;
+      if (d <= 1 && d < bestD) {
         best = region;
-        bestD = d / reach;
+        bestD = d;
       }
     }
-    return { body, region: best };
+    return { body: hit.body, region: best };
   }
 
-  /* ------------------------------------------------------------ camera */
+  /* ------------------------------------------------------------ input */
 
-  private worldOf(n: RegionNode, out: Vector3): Vector3 {
-    return this.bodies[n.region.body].pivot.localToWorld(out.copy(n.local));
+  private bindInput(): void {
+    const el = this.renderer.domElement;
+    const pointers = new Map<number, { x: number; y: number }>();
+    let drag: { mode: 'turn' | 'pan'; body: Body | null; x: number; y: number; moved: boolean } | null = null;
+    let pinch = 0;
+
+    el.addEventListener('contextmenu', (e) => e.preventDefault());
+    el.addEventListener('pointerdown', (e) => {
+      el.setPointerCapture(e.pointerId);
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 2) {
+        const [a, b] = [...pointers.values()];
+        pinch = Math.hypot(a!.x - b!.x, a!.y - b!.y);
+        drag = null;
+        return;
+      }
+      const hit = e.button === 0 && !e.shiftKey ? this.hitBody(e.clientX, e.clientY) : null;
+      drag = { mode: hit ? 'turn' : 'pan', body: hit?.body ?? null, x: e.clientX, y: e.clientY, moved: false };
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 2) {
+        const [a, b] = [...pointers.values()];
+        const d = Math.hypot(a!.x - b!.x, a!.y - b!.y);
+        if (pinch > 0) this.zoomAt((a!.x + b!.x) / 2, (a!.y + b!.y) / 2, pinch / d);
+        pinch = d;
+        return;
+      }
+      if (!drag) return;
+      const dx = e.clientX - drag.x;
+      const dy = e.clientY - drag.y;
+      if (!drag.moved && Math.hypot(dx, dy) < 4) return;
+      if (!drag.moved) this.events.interact();
+      drag.moved = true;
+      drag.x = e.clientX;
+      drag.y = e.clientY;
+      if (drag.mode === 'turn' && drag.body) this.turn(drag.body, dx, dy);
+      else this.pan(dx, dy);
+    });
+    const end = (e: PointerEvent): void => {
+      pointers.delete(e.pointerId);
+      if (pointers.size < 2) pinch = 0;
+      if (drag && !drag.moved && e.type === 'pointerup') {
+        this.idle = false;
+        this.events.click(this.pick(e.clientX, e.clientY));
+      }
+      drag = null;
+    };
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+    el.addEventListener(
+      'wheel',
+      (e) => {
+        e.preventDefault();
+        this.events.interact();
+        const dy = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY;
+        this.zoomAt(e.clientX, e.clientY, Math.exp(Math.max(-0.6, Math.min(0.6, dy * 0.0016))));
+      },
+      { passive: false },
+    );
   }
 
-  private bodyCenter(body: Body): Vector3 {
-    return this.bodies[body].pivot.getWorldPosition(new Vector3());
+  /** Turn one planet by a screen drag; the others do not move. */
+  private turn(body: Body, dx: number, dy: number): void {
+    this.idle = false;
+    this.cancelFlight();
+    const node = this.bodies[body];
+    this.turnTo.delete(body);
+    const speed = 0.0055 / Math.max(0.4, Math.min(2, this.zoomFactor(body)));
+    const q = new Quaternion().setFromAxisAngle(Y, dx * speed);
+    q.multiply(new Quaternion().setFromAxisAngle(X, dy * speed));
+    node.pivot.quaternion.premultiply(q).normalize();
   }
 
-  /**
-   * Turn a body (smoothly, in tick) so that lat/lon faces its open side, away from the other
-   * bodies; returns that point's world direction once the turn is complete.
-   */
-  private face(body: Body, lat: number, lon: number): Vector3 {
-    const local = latLonToVec3(lat, lon, 1);
-    const away = AWAY_SIDE[body];
-    const wanted = Math.atan2(away.x, away.z) - Math.atan2(local.x, local.z);
-    const cur = this.bodies[body].pivot.rotation.y;
-    const target = cur + Math.atan2(Math.sin(wanted - cur), Math.cos(wanted - cur)); // the short way round
-    this.turnTo[body] = target;
-    return local.applyAxisAngle(Y_AXIS, target);
+  /** Below 1 when the camera is close to that body: turn more finely up close. */
+  private zoomFactor(body: Body): number {
+    return (this.camera.position.distanceTo(BODY_CENTER[body]) - BODY_RADIUS[body]) / (BODY_RADIUS[body] * 2);
   }
 
-  private poseForBody(body: Body, facing?: Region): Pose {
-    const c = this.bodyCenter(body);
-    const r = BODY_RADIUS[body];
-    const dir = facing ? this.face(body, facing.lat, facing.lon) : this.camera.position.clone().sub(c).normalize();
-    // A little above the facing point so the globe sits slightly low: cinematic framing.
-    dir.add(new Vector3(0, 0.18, 0)).normalize();
-    return { position: c.clone().addScaledVector(dir, r * 5.2), target: c };
+  /** World units per screen pixel at the z = 0 plane. */
+  private worldPerPixel(): number {
+    const h = this.renderer.domElement.clientHeight || 1;
+    return (2 * Math.max(this.camGoal.z, 0.2) * Math.tan((this.camera.fov * Math.PI) / 360)) / h;
   }
 
-  private poseForRegion(region: Region): Pose {
-    const c = this.bodyCenter(region.body);
-    const r = BODY_RADIUS[region.body];
-    const n = this.face(region.body, region.lat, region.lon);
-    const altitude = REGION_ALTITUDE[region.kind === 'ranked' ? 'ranked' : region.body];
-    return { position: c.clone().addScaledVector(n, r * (1 + altitude)), target: c };
+  pan(dx: number, dy: number): void {
+    this.idle = false;
+    this.cancelFlight();
+    const k = this.worldPerPixel();
+    this.camGoal.x -= dx * k;
+    this.camGoal.y += dy * k;
+    this.clampGoal();
   }
 
-  private setPose(p: Pose): void {
-    this.camera.position.copy(p.position);
-    this.controls.target.copy(p.target);
-    this.camera.lookAt(p.target);
+  /** Zoom toward the point under the cursor (factor < 1 zooms in). */
+  zoomAt(clientX: number, clientY: number, factor: number): void {
+    this.idle = false;
+    this.cancelFlight();
+    this.raycaster.setFromCamera(this.ndc(clientX, clientY), this.camera);
+    const hit = this.hitBody(clientX, clientY);
+    const anchor = hit?.point ?? this.raycaster.ray.intersectPlane(new Plane(new Vector3(0, 0, 1), 0), new Vector3());
+    if (!anchor) return;
+    const goal = anchor.clone().add(this.camGoal.clone().sub(anchor).multiplyScalar(factor));
+    // Keep z only; x/y follow the cursor ray so the point under the cursor stays put.
+    this.camGoal.copy(goal);
+    this.clampGoal();
   }
 
-  private applyLimits(): void {
-    if (this.view === 'system') {
-      this.controls.minDistance = 4;
-      this.controls.maxDistance = 22;
-      this.controls.target.copy(SYSTEM_POSE.target);
-    } else if (this.focusBody) {
-      const r = BODY_RADIUS[this.focusBody];
-      this.controls.minDistance = r * 1.12;
-      this.controls.maxDistance = r * 7;
+  /** Never inside a planet, never too far, never lost off to the side. */
+  private clampGoal(): void {
+    const g = this.camGoal;
+    g.x = Math.max(-PAN_LIMIT.x, Math.min(PAN_LIMIT.x, g.x));
+    g.y = Math.max(-PAN_LIMIT.y, Math.min(PAN_LIMIT.y, g.y));
+    let minZ = 0.6;
+    for (const b of ['moon', 'earth', 'mars'] as const) {
+      const c = BODY_CENTER[b];
+      const r = BODY_RADIUS[b];
+      const dxy = Math.hypot(g.x - c.x, g.y - c.y);
+      if (dxy < r * 1.05) minZ = Math.max(minZ, c.z + Math.sqrt(Math.max(r * r - dxy * dxy, 0)) + r * 0.07);
     }
+    g.z = Math.max(minZ, Math.min(MAX_Z, g.z));
   }
 
-  private fly(to: Pose, dur: number, path?: CubicBezierCurve3): Promise<void> {
+  /* ------------------------------------------------------------ camera flights */
+
+  private cancelFlight(): void {
+    if (!this.flight) return;
+    this.camGoal.copy(this.camera.position);
+    this.flight.done();
+  }
+
+  private fly(to: Vector3, dur: number, arc = false): Promise<void> {
     this.flight?.done();
-    this.controls.enabled = false;
-    const from: Pose = { position: this.camera.position.clone(), target: this.controls.target.clone() };
+    const p0 = this.camera.position.clone();
+    const lift = arc ? Math.max(p0.z, to.z, 7.5) : 0;
+    const p1 = arc ? new Vector3(p0.x, p0.y, lift) : p0.clone().lerp(to, 1 / 3);
+    const p2 = arc ? new Vector3(to.x, to.y, lift) : p0.clone().lerp(to, 2 / 3);
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     return new Promise((resolve) => {
       this.flight = {
-        from,
-        to,
+        path: new CubicBezierCurve3(p0, p1, p2, to.clone()),
         t: 0,
         dur: reduce ? 0.001 : dur,
-        ...(path ? { path } : {}),
         done: () => {
           this.flight = null;
-          this.controls.enabled = true;
           resolve();
         },
       };
+      this.camGoal.copy(to);
     });
   }
 
-  async toSystem(): Promise<void> {
-    this.view = 'system';
-    this.turnTo = {};
-    this.refreshStates();
-    this.focusBody = null;
-    this.patch.clear();
-    this.applyLimits();
-    await this.fly(SYSTEM_POSE, 2.2);
+  /**
+   * Rotation that brings lat/lon to face the camera (+Z) with north up; the planet glides there.
+   */
+  private face(body: Body, lat: number, lon: number): void {
+    const n = latLonToVec3(lat, lon, 1);
+    let east = new Vector3(0, 1, 0).cross(n);
+    if (east.lengthSq() < 1e-6) east = new Vector3(1, 0, 0);
+    east.normalize();
+    const north = n.clone().cross(east).normalize();
+    const local = new Matrix4().makeBasis(east, north, n); // columns: local east, north, normal
+    this.turnTo.set(body, new Quaternion().setFromRotationMatrix(local.invert()));
   }
 
-  async toBody(body: Body, facing?: Region): Promise<void> {
-    this.view = 'body';
-    this.refreshStates();
-    this.focusBody = body;
-    this.patch.clear();
-    const pose = this.poseForBody(body, facing);
-    this.applyLimits();
-    await this.fly(pose, 2.2);
+  async toSystem(): Promise<void> {
+    this.setSelected(null);
+    await this.fly(SYSTEM_CAM, 2.0);
+  }
+
+  async toBody(body: Body): Promise<void> {
+    this.setSelected(null);
+    const c = BODY_CENTER[body];
+    const travel = this.focusBody !== null && this.focusBody !== body;
+    await this.fly(new Vector3(c.x, c.y, c.z + BODY_RADIUS[body] * BODY_FRAME), travel ? 2.6 : 2.0, travel);
   }
 
   async toRegion(region: Region): Promise<void> {
+    const c = BODY_CENTER[region.body];
+    const r = BODY_RADIUS[region.body];
     const travel = this.focusBody !== null && this.focusBody !== region.body;
-    const fromNode = this.selected ? this.regions.get(this.selected) : undefined;
-    this.view = 'region';
-    this.refreshStates();
-    this.focusBody = region.body;
-    this.applyLimits();
     this.patch.clear();
-    const pose = this.poseForRegion(region);
-    let path: CubicBezierCurve3 | undefined;
-    if (travel) {
-      // Fly across space along a sweeping curve, like following the arc between the bodies.
-      const p0 = this.camera.position.clone();
-      const out0 = p0.clone().sub(this.controls.target).normalize().multiplyScalar(3.2);
-      const out1 = pose.position.clone().sub(pose.target).normalize().multiplyScalar(3.2);
-      path = new CubicBezierCurve3(p0, p0.clone().add(out0), pose.position.clone().add(out1), pose.position.clone());
-    }
-    this.setEmphasis(fromNode ? [fromNode.region.id, region.id] : [region.id]);
-    await this.fly(pose, travel ? 3.6 : 2.0, path);
-    const layer = IMAGERY[region.body].color;
+    this.face(region.body, region.lat, region.lon);
+    const alt = REGION_ALTITUDE[region.kind === 'ranked' ? 'ranked' : region.body];
+    await this.fly(new Vector3(c.x, c.y, c.z + r * (1 + alt)), travel ? 3.4 : 2.2, travel);
+    if (this.selected !== region.id) return;
     // Cover the whole close-up view (ground half-width is about altitude x 45 degrees) with margin.
-    const half = REGION_ALTITUDE[region.kind === 'ranked' ? 'ranked' : region.body] * 62;
-    void this.patch.show(this.bodies[region.body].pivot, BODY_RADIUS[region.body], layer, region.lat, region.lon, half);
+    void this.patch.show(
+      this.bodies[region.body].pivot,
+      r,
+      IMAGERY[region.body].color,
+      region.lat,
+      region.lon,
+      alt * 62,
+    );
   }
 
   /* ------------------------------------------------------------ frame */
@@ -510,88 +580,105 @@ export class Space {
     const dt = Math.min(0.05, (now - this.last) / 1000);
     this.last = now;
     this.time += dt;
-    this.frame++;
 
-    if (this.view === 'system' && !this.flight)
-      for (const b of ['moon', 'earth', 'mars'] as const) this.bodies[b].pivot.rotation.y += SPIN[b] * dt;
-    // Close-ups: bodies glide to the orientation chosen by face().
-    for (const b of ['moon', 'earth', 'mars'] as const) {
-      const target = this.turnTo[b];
-      if (target === undefined) continue;
-      const pivot = this.bodies[b].pivot;
-      pivot.rotation.y += (target - pivot.rotation.y) * (1 - Math.exp(-dt * 3.2));
-    }
-
+    // Camera: either on a flight path, or easing toward the goal set by pan / zoom.
     if (this.flight) {
       const f = this.flight;
       f.t = Math.min(1, f.t + dt / f.dur);
-      const k = easeInOutCubic(f.t);
-      if (f.path) f.path.getPoint(k, this.camera.position);
-      else this.camera.position.lerpVectors(f.from.position, f.to.position, k);
-      this.controls.target.lerpVectors(f.from.target, f.to.target, k);
-      this.camera.lookAt(this.controls.target);
+      f.path.getPoint(easeInOutCubic(f.t), this.camera.position);
       if (f.t >= 1) f.done();
     } else {
-      this.controls.update();
+      this.camera.position.lerp(this.camGoal, 1 - Math.exp(-dt * 9));
     }
 
-    // Key light rides with the camera, from its upper left: every view reads as sunlit relief.
-    tmpA.set(-4.5, 3.2, 2).applyQuaternion(this.camera.quaternion);
-    this.key.position.copy(this.camera.position).add(tmpA);
-    this.key.target.position.copy(this.controls.target);
+    // Planets: glide to a requested orientation, or idle-spin in the system view.
+    for (const b of ['moon', 'earth', 'mars'] as const) {
+      const node = this.bodies[b];
+      const want = this.turnTo.get(b);
+      if (want) {
+        node.pivot.quaternion.slerp(want, 1 - Math.exp(-dt * 3.4));
+        if (node.pivot.quaternion.angleTo(want) < 1e-3) this.turnTo.delete(b);
+      } else if (this.view === 'system' && this.idle) {
+        node.pivot.quaternion.premultiply(tmpQ.setFromAxisAngle(Y, IDLE_SPIN * dt));
+      }
+    }
 
+    this.updateView();
     num(this.stars.material, 'uTime').value = this.time;
     for (const n of this.regions.values()) num(n.points.material, 'uTime').value = this.time;
-    this.orbit.material.opacity += ((this.view === 'system' ? 0.12 : 0) - this.orbit.material.opacity) * 0.08;
     this.scene.updateMatrixWorld();
     this.updateArcs();
     this.patch.update(dt);
     this.renderer.render(this.scene, this.camera);
   };
 
+  /** Work out the view level from the camera position; tell the app when it changes. */
+  private updateView(): void {
+    // Mid-flight the camera passes through other levels on purpose: judge only where it lands.
+    if (this.flight) return;
+    const cam = this.camera.position;
+    let body: Body | null = null;
+    for (const b of ['moon', 'earth', 'mars'] as const) {
+      const c = BODY_CENTER[b];
+      const r = BODY_RADIUS[b];
+      if (Math.hypot(cam.x - c.x, cam.y - c.y) < r * 1.35 && cam.z - c.z < r * 4.6) body = b;
+    }
+    let view: View = body ? 'body' : 'system';
+    const sel = this.selected ? this.regions.get(this.selected) : undefined;
+    if (body && sel && sel.region.body === body) {
+      const r = BODY_RADIUS[body];
+      const p = this.bodies[body].pivot.localToWorld(tmp.copy(sel.local));
+      const facing = tmp2.copy(p).sub(BODY_CENTER[body]).normalize().z;
+      const turning = this.turnTo.has(body); // still gliding to face the camera: counts as open
+      const near = cam.z - BODY_CENTER[body].z < r * 2.1 && (turning || Math.hypot(cam.x - p.x, cam.y - p.y) < r * 0.9);
+      if (near && (facing > 0.55 || turning)) view = 'region';
+    }
+    if (view !== this.view || body !== this.focusBody) {
+      this.view = view;
+      this.focusBody = body;
+      this.refreshStates();
+      this.events.view(view, body);
+    }
+  }
+
   private arcAlpha(a: ArcNode): number {
     if (!this.regionsVisible) return 0;
-    const touches = (ids: Set<string> | null): boolean => !!ids && (ids.has(a.link.from) || ids.has(a.link.to));
-    const live = new Set([this.hovered, this.selected].filter((x): x is string => !!x));
-    if (live.size && touches(live)) return 1;
-    if (this.emphasis && touches(this.emphasis)) return 0.85;
-    if (a.link.kind === 'ranked') return this.selected === a.link.from ? 0.6 : 0;
-    if (this.view === 'system') return live.size ? 0.15 : 0.75;
-    if (this.view === 'body')
-      return a.from.region.body === this.focusBody || a.to.region.body === this.focusBody ? 0.55 : 0;
+    const touches = (id: string | null): boolean => !!id && (a.link.from === id || a.link.to === id);
+    if (touches(this.selected)) return 1;
+    if (touches(this.hovered)) return 0.75;
     return 0;
   }
 
   private updateArcs(): void {
     for (const a of this.arcs) {
       const mat = a.line.material;
-      const want = this.arcAlpha(a);
-      num(mat, 'uAlpha').value += (want - num(mat, 'uAlpha').value) * 0.1;
+      const alpha = num(mat, 'uAlpha');
+      alpha.value += (this.arcAlpha(a) - alpha.value) * 0.12;
       num(mat, 'uTime').value = this.time;
-      a.line.visible = num(mat, 'uAlpha').value > 0.005;
+      a.line.visible = alpha.value > 0.01;
       if (!a.line.visible) continue;
-      const p0 = this.worldOf(a.from, tmpA);
-      const p3 = this.worldOf(a.to, tmpB);
-      const c0 = this.bodyCenter(a.from.region.body);
-      const c3 = this.bodyCenter(a.to.region.body);
+      const p0 = this.bodies[a.from.region.body].pivot.localToWorld(tmp.copy(a.from.local)).clone();
+      const p3 = this.bodies[a.to.region.body].pivot.localToWorld(tmp.copy(a.to.local)).clone();
+      const n0 = p0.clone().sub(BODY_CENTER[a.from.region.body]).normalize();
+      const n3 = p3.clone().sub(BODY_CENTER[a.to.region.body]).normalize();
       const span = p0.distanceTo(p3);
-      const p1 = tmpC
-        .copy(p0)
-        .sub(c0)
-        .normalize()
-        .multiplyScalar(span * 0.38)
-        .add(p0);
-      const p2 = tmpD
-        .copy(p3)
-        .sub(c3)
-        .normalize()
-        .multiplyScalar(span * 0.38)
-        .add(p3);
-      const curve = new CubicBezierCurve3(p0.clone(), p1.clone(), p2.clone(), p3.clone());
+      const lift = new Vector3(0, 0, span * 0.22); // bow toward the viewer, away from the planets
+      const curve = new CubicBezierCurve3(
+        p0,
+        p0
+          .clone()
+          .addScaledVector(n0, span * 0.3)
+          .add(lift),
+        p3
+          .clone()
+          .addScaledVector(n3, span * 0.3)
+          .add(lift),
+        p3,
+      );
       const attr = a.line.geometry.getAttribute('position') as BufferAttribute;
       for (let k = 0; k <= ARC_SEGMENTS; k++) {
-        curve.getPoint(k / ARC_SEGMENTS, tmpA);
-        attr.setXYZ(k, tmpA.x, tmpA.y, tmpA.z);
+        curve.getPoint(k / ARC_SEGMENTS, tmp);
+        attr.setXYZ(k, tmp.x, tmp.y, tmp.z);
       }
       attr.needsUpdate = true;
     }
@@ -606,6 +693,7 @@ export class Space {
     visible: boolean;
     patch: string;
     tiles: number;
+    camera: number[];
   } {
     return {
       view: this.view,
@@ -615,26 +703,25 @@ export class Space {
       visible: this.regionsVisible,
       patch: this.patch.state,
       tiles: this.patch.tiles,
+      camera: this.camera.position.toArray().map((v) => Math.round(v * 100) / 100),
     };
   }
 
-  dispose(): void {
-    this.renderer.setAnimationLoop(null);
-    window.removeEventListener('resize', this.resize);
-    this.controls.dispose();
-    this.renderer.dispose();
+  /** Where a planet's centre is on screen, in client pixels (tests). */
+  screenOf(body: Body): { x: number; y: number } {
+    const p = BODY_CENTER[body].clone().project(this.camera);
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    return { x: rect.left + ((p.x + 1) / 2) * rect.width, y: rect.top + ((1 - p.y) / 2) * rect.height };
+  }
+
+  /** Orientation of one planet (tests: turning one must not move the others). */
+  orientation(body: Body): number[] {
+    return this.bodies[body].pivot.quaternion.toArray().map((v) => Math.round(v * 1e4) / 1e4);
   }
 
   get canvas(): HTMLCanvasElement {
     return this.renderer.domElement;
   }
-
-  get frames(): number {
-    return this.frame;
-  }
-
-  /** Bodies' parent objects (for tests / extensions). */
-  pivot(body: Body): Object3D {
-    return this.bodies[body].pivot;
-  }
 }
+
+const tmpQ = new Quaternion();

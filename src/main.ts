@@ -25,8 +25,10 @@ async function boot(): Promise<void> {
     loadOut(),
     Promise.all([
       loadImage(`${base}textures/moon.webp`),
-      loadImage(`${base}textures/earth.webp`),
       loadImage(`${base}textures/mars.webp`),
+      loadImage(`${base}textures/earth.webp`),
+      loadImage(`${base}textures/earth_night.webp`),
+      loadImage(`${base}textures/earth_water.webp`),
     ]),
   ]);
   let result: Awaited<typeof work> | Error;
@@ -46,8 +48,8 @@ async function boot(): Promise<void> {
     $('#fatal-msg').textContent = result.message;
     return;
   }
-  const [start, out, [moon, earth, mars]] = result;
-  start.start(out, { moon, earth, mars });
+  const [start, out, [moon, mars, earth, earthNight, earthWater]] = result;
+  start.start(out, { moon, mars, earth, earthNight, earthWater });
 }
 
 void boot();

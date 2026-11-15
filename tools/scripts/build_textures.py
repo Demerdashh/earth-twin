@@ -39,17 +39,17 @@ def fetch(layer: dict, z: int, y: int, x: int) -> Image.Image:
             data = r.read()
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
-    return Image.open(io.BytesIO(path.read_bytes())).convert("RGB")
+    return Image.open(io.BytesIO(path.read_bytes())).convert("RGBA")
 
 
-def mosaic(layer: dict, z: int) -> np.ndarray:
-    """Stitch a whole level into one float RGB array in [0, 1]."""
+def mosaic(layer: dict, z: int, mode: str = "RGB") -> np.ndarray:
+    """Stitch a whole level into one float array in [0, 1] (mode "RGB" or "RGBA")."""
     cols = 2 ** (z + 1) if layer["scheme"] == "geographic" else 2**z
     rows = 2**z
     jobs = [(y, x) for y in range(rows) for x in range(cols)]
     with ThreadPoolExecutor(8) as pool:
-        tiles = list(pool.map(lambda yx: fetch(layer, z, *yx), jobs))
-    img = Image.new("RGB", (cols * TILE, rows * TILE))
+        tiles = [t.convert(mode) for t in pool.map(lambda yx: fetch(layer, z, *yx), jobs)]
+    img = Image.new(mode, (cols * TILE, rows * TILE))
     for (y, x), t in zip(jobs, tiles):
         img.paste(t.resize((TILE, TILE)), (x * TILE, y * TILE))
     return np.asarray(img, dtype=np.float32) / 255.0
@@ -104,8 +104,14 @@ def save(a: np.ndarray, name: str, quality: int = 80) -> None:
 
 
 def main() -> None:
+    # Earth: true-colour day, VIIRS night lights, and an ocean mask for sun glint (real layers).
     earth = mercator_to_equirect(mosaic(IMAGERY["earth"]["color"], 3))
-    save(stretch(earth, 0.2, 99.8) ** 0.95, "earth.webp")
+    save(stretch(earth, 0.2, 99.85) ** 0.92, "earth.webp", quality=78)
+    night = mercator_to_equirect(mosaic(IMAGERY["earth"]["night"], 3))
+    save(np.clip(stretch(night, 1, 99.9) ** 1.6, 0, 1), "earth_night.webp", quality=70)
+    land = mercator_to_equirect(mosaic(IMAGERY["earth"]["land"], 3, "RGBA"))[..., 3]
+    water = 1.0 - land
+    save(resize(np.repeat(water[..., None], 3, axis=2), 1024, 512), "earth_water.webp", quality=80)
 
     moon = blend_relief(resize(mosaic(IMAGERY["moon"]["color"], 3)), resize(mosaic(IMAGERY["moon"]["shade"], 3)), 0.55)
     moon = stretch(moon) ** 1.05

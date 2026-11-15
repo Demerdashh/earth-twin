@@ -2,13 +2,31 @@
  "_about": "Display imagery only (never scored). The single place for tile endpoints: read by the web app (region close-ups), tools/scripts/build_textures.py (globe textures) and `npm run check:sources`. All endpoints verified 2026-11-14 (HTTP 200 on capabilities and a level-0 tile, CORS *).",
  "earth": {
   "color": {
-   "product": "BlueMarble_ShadedRelief_Bathymetry",
+   "product": "BlueMarble_NextGeneration",
    "provider": "NASA GIBS",
-   "credit": "NASA EOSDIS GIBS: Blue Marble shaded relief",
-   "url": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg",
+   "credit": "NASA Earth Observatory / GIBS: Blue Marble Next Generation (true colour)",
+   "url": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_NextGeneration/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg",
    "capabilities": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/1.0.0/WMTSCapabilities.xml",
    "scheme": "webmercator",
    "max_level": 8
+  },
+  "night": {
+   "product": "VIIRS_Black_Marble (2016)",
+   "provider": "NASA GIBS",
+   "credit": "NASA Earth Observatory / GIBS: VIIRS Black Marble 2016 (night lights)",
+   "url": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.png",
+   "capabilities": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/1.0.0/WMTSCapabilities.xml",
+   "scheme": "webmercator",
+   "max_level": 8
+  },
+  "land": {
+   "product": "OSM_Land_Mask",
+   "provider": "NASA GIBS",
+   "credit": "NASA GIBS: land mask (OpenStreetMap data), used for ocean reflections",
+   "url": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/OSM_Land_Mask/default/GoogleMapsCompatible_Level9/{z}/{y}/{x}.png",
+   "capabilities": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/1.0.0/WMTSCapabilities.xml",
+   "scheme": "webmercator",
+   "max_level": 9
   }
  },
  "moon": {

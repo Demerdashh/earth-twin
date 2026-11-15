@@ -1,18 +1,10 @@
-import type { Texture } from 'three';
 import { BODY_LABEL, TARGETS, type Body } from './data/config';
 import { loadRank, type OutState, type RankFile } from './data/out';
-import { buildGraph, linksOf, rankedRegions, targetRegionId, type Graph, type Region } from './data/regions';
-import { Space } from './scene/space';
+import { buildGraph, linksOf, rankedRegions, targetRegionId, type Graph, type Link, type Region } from './data/regions';
+import { Space, type BodyTextures, type View } from './scene/space';
 import { renderAbout } from './ui/about';
 import { $, h, reducedMotion } from './ui/dom';
 import { Panel } from './ui/panel';
-
-/** Opening side for each body: the region the camera faces first. */
-const HERO_REGION: Record<Body, string> = {
-  earth: 'egypt_kharga_depression',
-  mars: 'target_medusae_fossae',
-  moon: 'target_shackleton_rim',
-};
 
 interface TourStep {
   caption: string;
@@ -41,21 +33,27 @@ const TOUR: TourStep[] = [
   { caption: 'AnalogLens. Know what a place can teach you, and where it will mislead you.', run: (a) => a.goSystem() },
 ];
 
+const EMPTY: Graph = { regions: [], links: [], pendingTargets: [] };
+
 export class App {
   private readonly space: Space;
   private readonly panel: Panel;
   private readonly base: Graph;
-  private ranked: Graph = { regions: [], links: [], pendingTargets: [] };
+  private ranked: Graph = EMPTY;
   private readonly task = new Map<string, string>();
   private readonly rank = new Map<string, RankFile | null>();
   private touring = false;
 
   constructor(
     private readonly out: OutState,
-    textures: Record<Body, Texture>,
+    textures: BodyTextures,
   ) {
     this.base = buildGraph();
-    this.space = new Space($('#space'), textures);
+    this.space = new Space($('#space'), textures, {
+      click: (hit) => void this.onClick(hit),
+      view: (view) => this.onView(view),
+      interact: () => this.onInteract(),
+    });
     this.panel = new Panel($('#card'), {
       travel: (id) => void this.goRegion(id),
       task: (target, task) => void this.setTask(target, task),
@@ -63,32 +61,20 @@ export class App {
     });
     this.refreshGraph();
     this.buildChrome();
-    this.bindPointer();
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        if (!$('#about').hidden) this.closeAbout();
-        else void this.back();
-      }
-    });
-    (window as unknown as { __analoglens: unknown }).__analoglens = { debug: () => this.space.debug(), app: this };
+    this.bindKeys();
+    (window as unknown as { __analoglens: unknown }).__analoglens = {
+      debug: () => this.space.debug(),
+      orientation: (b: Body) => this.space.orientation(b),
+      screenOf: (b: Body) => this.space.screenOf(b),
+    };
   }
 
   /* ------------------------------------------------------------ chrome */
 
   private buildChrome(): void {
-    const status = $('#status');
-    status.className = `status-pill is-${this.out.kind}`;
-    status.textContent =
-      this.out.kind === 'ready'
-        ? `Pipeline output · ${this.out.manifest.generated.slice(0, 10)}`
-        : this.out.kind === 'invalid'
-          ? 'Pipeline output refused'
-          : 'Awaiting pipeline output';
-    status.addEventListener('click', () => this.openAbout());
-
     for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-body]'))
-      btn.addEventListener('click', () => void this.userAction(() => this.goBody(btn.dataset.body as Body)));
-    $('#to-system').addEventListener('click', () => void this.userAction(() => this.goSystem()));
+      btn.addEventListener('click', () => void this.user(() => this.goBody(btn.dataset.body as Body)));
+    $('#to-system').addEventListener('click', () => void this.user(() => this.goSystem()));
     $('#toggle-regions').addEventListener('click', () => {
       const on = !this.space.regionsVisible;
       this.space.setRegionsVisible(on);
@@ -100,17 +86,40 @@ export class App {
     $('#about').addEventListener('click', (e) => e.target === e.currentTarget && this.closeAbout());
 
     // Keyboard and screen-reader access to every region, without any visible side panel.
-    const nav = $('#region-nav');
-    nav.replaceChildren(
+    $('#region-nav').replaceChildren(
       ...this.base.regions.map((r) =>
         h(
           'button',
-          { type: 'button', onclick: () => void this.userAction(() => this.goRegion(r.id)) },
+          { type: 'button', onclick: () => void this.user(() => this.goRegion(r.id)) },
           `${r.name} (${BODY_LABEL[r.body]})`,
         ),
       ),
     );
     this.syncDock();
+  }
+
+  private bindKeys(): void {
+    document.addEventListener('keydown', (e) => {
+      const step = e.shiftKey ? 120 : 50;
+      const pan: Record<string, [number, number]> = {
+        ArrowLeft: [step, 0],
+        ArrowRight: [-step, 0],
+        ArrowUp: [0, step],
+        ArrowDown: [0, -step],
+      };
+      const move = pan[e.key];
+      if (e.key === 'Escape') {
+        if (!$('#about').hidden) this.closeAbout();
+        else void this.back();
+      } else if (move && !(e.target instanceof HTMLButtonElement)) {
+        e.preventDefault();
+        this.onInteract();
+        this.space.pan(move[0], move[1]);
+      } else if (e.key === '+' || e.key === '=' || e.key === '-') {
+        this.onInteract();
+        this.space.zoomAt(innerWidth / 2, innerHeight / 2, e.key === '-' ? 1.25 : 0.8);
+      }
+    });
   }
 
   private openAbout(): void {
@@ -130,88 +139,57 @@ export class App {
     document.body.dataset.view = view;
   }
 
-  /* ------------------------------------------------------------ pointer */
+  /* ------------------------------------------------------------ scene events */
 
-  private bindPointer(): void {
-    const canvas = this.space.canvas;
-    const tip = $('#tip');
-    let down: { x: number; y: number } | null = null;
-    canvas.addEventListener('pointerdown', (e) => (down = { x: e.clientX, y: e.clientY }));
-    canvas.addEventListener('pointermove', (e) => {
-      const hit = this.space.pick(e.clientX, e.clientY);
-      const region = hit?.region ?? null;
-      this.space.setHovered(region?.id ?? null);
-      canvas.style.cursor = hit ? 'pointer' : 'grab';
-      if (region) {
-        tip.hidden = false;
-        tip.textContent = region.name;
-        tip.style.transform = `translate(${e.clientX + 14}px, ${e.clientY + 14}px)`;
-      } else tip.hidden = true;
+  private async onClick(hit: { body: Body; region: Region | null } | null): Promise<void> {
+    if (!hit) return;
+    await this.user(() => {
+      if (hit.region) return this.goRegion(hit.region.id);
+      const { view, body } = this.space.debug();
+      return view !== 'system' && body === hit.body ? Promise.resolve() : this.goBody(hit.body);
     });
-    canvas.addEventListener('pointerleave', () => {
-      this.space.setHovered(null);
-      tip.hidden = true;
-    });
-    canvas.addEventListener('pointerup', (e) => {
-      if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) return;
-      down = null;
-      const hit = this.space.pick(e.clientX, e.clientY);
-      if (!hit) return;
-      void this.userAction(() =>
-        hit.region
-          ? this.goRegion(hit.region.id)
-          : this.space.view === 'system' || this.space.focusBody !== hit.body
-            ? this.goBody(hit.body)
-            : Promise.resolve(),
-      );
-    });
+  }
+
+  /** The camera reached another level (flight, scroll or pan): keep the UI in step. */
+  private onView(view: View): void {
+    if (view !== 'region' && this.space.selected) {
+      this.space.setSelected(null);
+      this.panel.hide();
+    }
+    this.syncDock();
+  }
+
+  private onInteract(): void {
+    this.stopTour();
+    $('#hint').classList.add('is-gone');
+  }
+
+  private async user(fn: () => Promise<void>): Promise<void> {
+    this.onInteract();
+    await fn();
   }
 
   /* ------------------------------------------------------------ navigation */
 
-  private region(id: string): Region | undefined {
-    return this.space.region(id);
-  }
-
-  private dismissHero(): void {
-    $('#hero').classList.add('is-gone');
-  }
-
-  private async userAction(fn: () => Promise<void>): Promise<void> {
-    this.stopTour();
-    this.dismissHero();
-    await fn();
-  }
-
   async goSystem(): Promise<void> {
-    this.space.setSelected(null);
-    this.space.setEmphasis(null);
     this.panel.hide();
-    const p = this.space.toSystem();
-    this.syncDock();
-    await p;
+    await this.space.toSystem();
   }
 
   async goBody(body: Body): Promise<void> {
-    this.space.setSelected(null);
-    this.space.setEmphasis(null);
     this.panel.hide();
-    const p = this.space.toBody(body, this.region(HERO_REGION[body]));
-    this.syncDock();
-    await p;
+    await this.space.toBody(body);
   }
 
   async goRegion(id: string): Promise<void> {
-    const region = this.region(id);
+    const region = this.space.region(id);
     if (!region) return;
-    this.dismissHero();
-    const p = this.space.toRegion(region);
+    const flight = this.space.toRegion(region);
     this.space.setSelected(id);
-    this.syncDock();
     this.renderPanel(region);
     // Keyboard users jumping from the region list land on the card (and the list closes).
     if (document.activeElement?.closest('#region-nav')) $('#card-title').focus({ preventScroll: true });
-    await p;
+    await flight;
     if (region.kind === 'target' && region.targetKey) await this.ensureRank(region.targetKey);
   }
 
@@ -226,8 +204,6 @@ export class App {
 
   private async ensureRank(targetKey: string): Promise<void> {
     if (this.out.kind !== 'ready') return;
-    const target = this.base.regions.find((r) => r.targetKey === targetKey);
-    if (!target) return;
     const task = this.task.get(targetKey) ?? (await this.firstRunTask(targetKey));
     if (task) await this.setTask(targetKey, task);
   }
@@ -243,14 +219,13 @@ export class App {
     if (this.out.kind === 'ready') {
       const rank = await loadRank(targetKey, task);
       this.rank.set(`${targetKey}__${task}`, rank);
-      this.ranked = rank
-        ? rankedRegions(targetKey, task, rank.results)
-        : { regions: [], links: [], pendingTargets: [] };
+      this.ranked = rank ? rankedRegions(targetKey, task, rank.results) : EMPTY;
+      const selected = this.space.selected;
       this.refreshGraph();
-      this.space.setSelected(targetRegionId(targetKey));
+      this.space.setSelected(selected);
     }
-    const target = this.region(targetRegionId(targetKey));
-    if (target && this.space.debug().selected === target.id) this.renderPanel(target);
+    const target = this.space.region(targetRegionId(targetKey));
+    if (target && this.space.selected === target.id) this.renderPanel(target);
   }
 
   private refreshGraph(): void {
@@ -258,10 +233,9 @@ export class App {
   }
 
   private renderPanel(region: Region): void {
-    const all = [...this.base.links, ...this.ranked.links];
-    const linked = linksOf(all, region.id)
-      .map((link) => ({ link, region: this.region(link.from === region.id ? link.to : link.from) }))
-      .filter((x): x is { link: (typeof all)[number]; region: Region } => !!x.region);
+    const linked = linksOf([...this.base.links, ...this.ranked.links], region.id)
+      .map((link) => ({ link, region: this.space.region(link.from === region.id ? link.to : link.from) }))
+      .filter((x): x is { link: Link; region: Region } => !!x.region);
     const task = region.targetKey ? this.task.get(region.targetKey) : undefined;
     const rank = region.targetKey && task ? this.rank.get(`${region.targetKey}__${task}`) : undefined;
     this.panel.show(region, {
@@ -276,7 +250,7 @@ export class App {
 
   async playTour(): Promise<void> {
     this.touring = true;
-    this.dismissHero();
+    $('#hint').classList.add('is-gone');
     $('#tour').setAttribute('aria-pressed', 'true');
     const caption = $('#caption');
     for (const step of TOUR) {
