@@ -2,6 +2,19 @@ import type { DataSource } from '../config/data-source';
 import type { ContractError } from '../data/validate';
 import { clear, h } from './dom';
 
+export function renderFatal(root: HTMLElement, title: string, message: string): void {
+  clear(root);
+  root.append(
+    h(
+      'div',
+      { class: 'fatal', role: 'alert' },
+      h('h1', {}, title),
+      h('p', {}, message),
+      h('p', {}, h('a', { class: 'btn btn-primary', href: location.href }, 'Reload')),
+    ),
+  );
+}
+
 /** Full-screen, explicit error when data does not match the contract. Nothing invalid is rendered. */
 export function renderContractErrors(root: HTMLElement, source: DataSource, errors: ContractError[]): void {
   clear(root);

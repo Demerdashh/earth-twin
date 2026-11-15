@@ -8,32 +8,34 @@
       content="Analog Finder — find places on Earth that resemble lunar and Martian landing sites, using open NASA data."
     />
     <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#02050c" />
     <title>Analog Finder</title>
+    <link rel="preload" href="/preloader/moon.jpg" as="image" />
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23f2b84b' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%235cc8ff'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='%23c9ccd1'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='%239aa0a8'/%3E%3Ccircle cx='19' cy='19' r='3.5' fill='%239aa0a8'/%3E%3C/svg%3E"
     />
   </head>
-  <body data-mode="story">
-    <a class="skip-link" href="#main">Skip to content</a>
-    <div id="app">
-      <header class="topbar">
-        <div class="brand">
-          <span class="brand-mark" aria-hidden="true"></span>
-          <div>
-            <p class="brand-name">Analog Finder</p>
-            <p class="brand-sub">Earth analogs for lunar &amp; Martian sites</p>
+  <body data-mode="story" class="is-loading">
+    <div id="preloader" class="preloader">
+      <div class="space-bg" aria-hidden="true"></div>
+      <div class="pl-stage" role="status" aria-live="polite">
+        <div class="pl-moon-wrap" aria-hidden="true">
+          <svg class="pl-ring" viewBox="0 0 120 120">
+            <circle class="pl-track" cx="60" cy="60" r="56" />
+            <circle class="pl-progress" cx="60" cy="60" r="56" pathLength="1" />
+          </svg>
+          <div class="pl-moon" title="Moon — LRO WAC mosaic (NASA/GSFC/ASU via Moon Trek)">
+            <div class="pl-moon-tex"></div>
           </div>
         </div>
-        <nav id="mode-tabs" class="tabs" aria-label="Mode">
-          <a href="#story" data-mode="story">Story</a>
-          <a href="#explore" data-mode="explore">Explore</a>
-          <a href="#methods" data-mode="methods">Methods</a>
-        </nav>
-        <div id="body-switch" class="segmented" role="group" aria-label="Body"></div>
-        <span id="data-badge" class="data-badge" role="status">…</span>
-      </header>
+        <p class="pl-word">Analog Finder</p>
+        <p class="pl-status sr-only">Loading</p>
+      </div>
+    </div>
 
+    <div id="app" inert aria-hidden="true">
+      <div class="space-bg" aria-hidden="true"></div>
       <main id="main" class="stage">
         <div
           id="globe"
@@ -50,12 +52,24 @@
           <div id="popup-content"></div>
         </section>
 
-        <footer class="statusbar">
-          <span id="imagery-status" class="status-chip" role="status">Connecting to imagery…</span>
-          <span class="scope-note"
-            >Analogs cover terrain, thermal range, mineralogy and aridity — not gravity, radiation or vacuum.</span
-          >
-        </footer>
+        <div id="body-switch" class="segmented body-switch" role="group" aria-label="Body"></div>
+        <span id="imagery-status" class="status-chip" role="status"></span>
+
+        <div class="hud hud-left">
+          <a class="wordmark" href="#story" aria-label="Analog Finder — back to the story">
+            <span class="wordmark-mark" aria-hidden="true"></span>Analog Finder
+          </a>
+        </div>
+        <div class="hud hud-right">
+          <span id="data-badge" class="data-badge" role="status"></span>
+          <a id="mode-toggle" class="hud-btn" href="#explore">Explore</a>
+          <a id="methods-link" class="hud-icon" href="#methods" aria-label="Methods and data sources" title="Methods">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9.5" />
+              <path d="M12 11v6M12 7.5v.5" />
+            </svg>
+          </a>
+        </div>
 
         <div id="methods-page" class="methods-page" hidden></div>
 
@@ -69,9 +83,6 @@
           </div>
         </div>
       </main>
-    </div>
-    <div id="boot" class="boot" role="status">
-      <span class="spinner" aria-hidden="true"></span><span class="boot-msg">Loading…</span>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

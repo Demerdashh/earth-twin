@@ -10,9 +10,17 @@ Mars targets, in a guided **Story mode** or a hands-on **Explore mode**.
 > "Mock data" badge on screen, `"mock": true` in every file). Swapping in real output needs no
 > code changes; see [Going real](#going-real).
 
-| Story | Explore | Methods |
+| Preloader | Story | Explore |
 | --- | --- | --- |
-| ![Story mode](docs/screenshots/story-search.png) | ![Explore mode](docs/screenshots/explore.png) | ![Methods](docs/screenshots/methods.png) |
+| ![Preloader](docs/screenshots/preloader.jpg) | ![Story mode](docs/screenshots/story-hook.jpg) | ![Explore mode](docs/screenshots/explore.jpg) |
+
+**Design.** Cinematic and minimal, after `vid-reference/01` (kept locally, git-ignored): deep-navy
+space, a sunlit globe with soft camera-following light, a glass "scan" ring sweeping the Earth, and
+almost no text. There is no nav bar, just a wordmark, the data badge, an Explore/Story toggle and a
+Methods icon. A space **preloader** turns a small real Moon (LRO WAC, 35 KB) while the data set
+and the 3D engine load, then lifts the Moon off the top as the content appears. The app itself (globe,
+story, camera flights, observers) is only constructed after the preloader has completely finished.
+The engine is a separate chunk, so the first paint only needs about 46 KB of gzipped JS.
 
 - Architecture and plan: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Data contract (schemas, units, similarity formula, ownership): [CLAUDE.md](CLAUDE.md)
@@ -69,7 +77,7 @@ Earth Engine export template: `pipeline/earth_engine/export_earth_features.py`.
 ```bash
 npm run verify         # typecheck + ESLint/Prettier + vitest + contract validation + pytest + mypy + build
 npm run test:e2e       # Playwright smoke: load, switch Earth/Moon/Mars, move a slider, ranking changes
-npm run screenshots    # regenerate docs/screenshots/*.png
+npm run screenshots    # regenerate docs/screenshots/*.jpg
 npm run check:sources  # probe every tile endpoint / dataset page in src/config/sources.ts (OK/FAIL)
 npm run fetch:basemaps # refresh the offline fallback tiles in public/basemaps/
 ```

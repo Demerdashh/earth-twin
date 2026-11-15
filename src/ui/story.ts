@@ -1,7 +1,7 @@
 import type { Ctx } from '../app/context';
 import { CHAPTERS, type Chapter, type StoryWidget } from '../story/chapters';
-import { COMPARABLE_FEATURES, FEATURE_META, type ComparableFeature } from '../contract/types';
-import { clear, h } from './dom';
+import { COMPARABLE_FEATURES, type ComparableFeature } from '../contract/types';
+import { clear, h, prefersReducedMotion } from './dom';
 import { fmtValue } from './format';
 
 /** Replace {{...}} tokens with values from the data set. Unknown tokens render as "—". */
@@ -26,85 +26,59 @@ export function fillTokens(text: string, ctx: Ctx): string {
   });
 }
 
-function widget(w: StoryWidget, ch: Chapter, ctx: Ctx, onExplore: () => void): HTMLElement {
-  const mock = ctx.data.mock;
+const stat = (value: string, label: string): HTMLElement =>
+  h('div', { class: 'stat' }, h('span', { class: 'stat-value' }, value), h('span', { class: 'stat-label' }, label));
+
+const mockNote = (ctx: Ctx, text: string): HTMLElement | null =>
+  ctx.data.mock ? h('p', { class: 'footnote is-mock' }, text) : null;
+
+function widget(w: StoryWidget, ch: Chapter, ctx: Ctx, onExplore: () => void): HTMLElement | null {
   switch (w) {
     case 'fingerprint': {
       const t = ctx.target(ch.targetId);
-      return h(
-        'dl',
-        { class: 'fp-grid' },
-        ...COMPARABLE_FEATURES.flatMap((f) => [
-          h('dt', {}, FEATURE_META[f].label),
-          h('dd', { class: 'num' }, fmtValue(f, t.features[f])),
-        ]),
-      );
-    }
-    case 'validation': {
-      const block = ctx.data.validation.targets[ch.targetId];
-      const rows = [...(block?.entries ?? [])].sort((x, y) => (x.rank ?? 1e9) - (y.rank ?? 1e9));
+      const f = t.features;
       return h(
         'div',
         {},
         h(
-          'table',
-          { class: 'val-table' },
-          h(
-            'caption',
-            {},
-            `Rank of known analogs for ${ctx.target(ch.targetId).name} (pool of ${block?.pool_size ?? 0})`,
-          ),
-          h(
-            'thead',
-            {},
-            h('tr', {}, h('th', { scope: 'col' }, 'Known analog'), h('th', { scope: 'col', class: 'num' }, 'Rank')),
-          ),
-          h(
-            'tbody',
-            {},
-            ...rows.map((e) =>
-              h(
-                'tr',
-                {},
-                h('td', {}, e.name.split(',')[0]),
-                h('td', { class: 'num' }, e.rank == null ? '—' : `#${e.rank}`),
-              ),
-            ),
-          ),
+          'div',
+          { class: 'stats' },
+          stat(fmtValue('slope_deg', f.slope_deg), 'slope'),
+          stat(fmtValue('temp_range_k', f.temp_range_k), 'daily heat swing'),
+          stat(fmtValue('ice_indicator', f.ice_indicator), 'ice indicator'),
         ),
-        mock
-          ? h(
-              'p',
-              { class: 'mock-note' },
-              'Mock data: these ranks demonstrate the check, they do not validate the method.',
-            )
-          : null,
+        h('p', { class: 'footnote' }, `${t.name} · mean within ${t.radius_km} km`),
+        mockNote(ctx, 'Mock values'),
+      );
+    }
+    case 'validation': {
+      const block = ctx.data.validation.targets[ch.targetId];
+      const entries = block?.entries ?? [];
+      const inTop = entries.filter((e) => e.rank != null && e.rank <= 10).length;
+      return h(
+        'div',
+        {},
+        h('div', { class: 'stats' }, stat(`${inTop}/${entries.length}`, 'known analogs in the top 10')),
+        h('p', { class: 'footnote' }, `for ${ctx.target(ch.targetId).name}`),
+        mockNote(ctx, 'Mock data — shows the check, not a result'),
       );
     }
     case 'discovery': {
+      if (ctx.data.mock) return h('p', { class: 'footnote is-mock' }, 'Mock data — no discovery claimed');
       const top = ctx.topNewCandidate(ch.targetId, ctx.data.candidates.default_weights);
-      if (mock)
-        return h(
-          'p',
-          { class: 'mock-note' },
-          'Mock data: no discovery is claimed. With real data this candidate would be shown as "our result, not NASA-validated".',
-        );
-      return h(
-        'p',
-        { class: 'callout' },
-        top
-          ? `${top.candidate.name}: our result, not NASA-validated.`
-          : 'No new candidate stands out in the current data.',
-      );
+      return top
+        ? h(
+            'div',
+            {},
+            h('p', { class: 'discovery-name' }, top.candidate.name),
+            h('p', { class: 'footnote' }, 'Our result, not NASA-validated'),
+          )
+        : null;
     }
     case 'limits':
-      return h(
-        'p',
-        { class: 'callout' },
-        'Analogs here cover terrain, thermal range, mineralogy and aridity — not gravity, radiation or vacuum. No place on Earth reproduces the daily temperature swing of the Moon or Mars.',
-      );
+      return h('p', { class: 'footnote' }, 'Terrain, heat, minerals, aridity — not gravity, radiation or vacuum.');
     case 'cta':
-      return h('button', { type: 'button', class: 'btn btn-primary', onclick: onExplore }, 'Open Explore mode');
+      return h('button', { type: 'button', class: 'btn btn-primary btn-lg', onclick: onExplore }, 'Explore');
   }
 }
 
@@ -141,14 +115,16 @@ export class StoryPanel {
         { class: 'chapter', id: `chapter-${ch.id}`, 'data-chapter': ch.id, 'aria-labelledby': `ch-title-${ch.id}` },
         h('p', { class: 'kicker' }, ch.kicker),
         h('h2', { id: `ch-title-${ch.id}` }, ch.title),
-        ...ch.paragraphs.map((p) => h('p', {}, fillTokens(p, this.ctx))),
+        ch.line ? h('p', { class: 'line' }, fillTokens(ch.line, this.ctx)) : null,
         ...(ch.widgets ?? []).map((w) => widget(w, ch, this.ctx, () => this.handlers.onExplore())),
       ),
     );
     this.root.append(
-      nav,
       h('div', { class: 'chapters' }, ...sections, h('div', { class: 'chapter-spacer', 'aria-hidden': 'true' })),
     );
+    // Dots live outside the scroller so they stay fixed on screen.
+    this.root.parentElement?.querySelector('.story-dots')?.remove();
+    this.root.after(nav);
     this.observer?.disconnect();
     this.observer = new IntersectionObserver(
       (entries) => {
@@ -168,7 +144,7 @@ export class StoryPanel {
     this.active = id;
     for (const el of this.root.querySelectorAll<HTMLElement>('[data-chapter]'))
       el.classList.toggle('is-active', el.dataset.chapter === id);
-    for (const el of this.root.querySelectorAll<HTMLElement>('[data-dot]')) {
+    for (const el of document.querySelectorAll<HTMLElement>('[data-dot]')) {
       if (el.dataset.dot === id) el.setAttribute('aria-current', 'step');
       else el.removeAttribute('aria-current');
     }
@@ -177,10 +153,9 @@ export class StoryPanel {
   }
 
   scrollTo(id: string): void {
-    this.root.querySelector(`#chapter-${id}`)?.scrollIntoView({
-      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-      block: 'start',
-    });
+    this.root
+      .querySelector(`#chapter-${id}`)
+      ?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
     this.activate(id);
   }
 

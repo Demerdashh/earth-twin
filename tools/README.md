@@ -24,6 +24,12 @@ skipped when already done. Only this README and `tools/scripts/` are committed.
 | npm packages | pinned in `package.json` / `package-lock.json` | Web app and dev tooling | `npm ci` into the project's `node_modules/` (cache in `tools/cache/npm`) |
 | Playwright Chromium | matches `@playwright/test` 1.65.1 | End-to-end smoke test and screenshots | `npx playwright install chromium` with `PLAYWRIGHT_BROWSERS_PATH=tools/bin/ms-playwright` |
 
+### Optional, installed on demand (not in `requirements.txt`)
+
+| Tool | Version | Why | How installed |
+| --- | --- | --- | --- |
+| imageio-ffmpeg (bundles an ffmpeg 7.1 binary) | 0.6.0 | Extract frames from the design reference videos in `vid-reference/` | `tools/python/Scripts/python -m pip install imageio-ffmpeg==0.6.0` (lands inside `tools/python`) |
+
 ## Scripts (`tools/scripts/`)
 
 | Script | npm command | Purpose |
@@ -34,6 +40,7 @@ skipped when already done. Only this README and `tools/scripts/` are committed.
 | `export-sources.ts` | `npm run export:sources` | Write `pipeline/config/sources.json` from `sources.ts` |
 | `validate-data.ts` | `npm run validate:data [-- dir]` | Validate a data directory with the browser's validator |
 | `fetch-basemaps.ts` | `npm run fetch:basemaps` | Download levels 0–2 of the primary imagery per body into `public/basemaps/` (offline fallback) |
+| `make_preloader_moon.py` | `node tools/scripts/py.mjs tools/scripts/make_preloader_moon.py` | Build the 35 KB preloader Moon texture from the bundled LRO WAC tiles |
 
 ## Not installed (by design)
 

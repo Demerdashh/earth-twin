@@ -26,6 +26,8 @@ export class App {
   readonly globe: Globe;
   private readonly story: StoryPanel;
   private pendingView: View | null = null;
+  /** Story chapter asks for the decorative scan band (Earth only). */
+  private scan = false;
   private mounting: Promise<void> = Promise.resolve();
 
   constructor(private readonly data: DataSet) {
@@ -120,10 +122,8 @@ export class App {
     el.className = `status-chip ${s.kind === 'remote' ? 'ok' : 'warn'}`;
     el.textContent =
       s.kind === 'remote'
-        ? `Imagery: ${s.source.label} — ${s.source.provider}`
-        : s.kind === 'local'
-          ? `Offline fallback: low-res ${s.source.label} (${s.reason})`
-          : `No imagery: ${s.reason}`;
+        ? `${s.source.label} — ${s.source.provider}`
+        : `Offline copy: low-res ${s.source.label} (${s.reason})`;
   }
 
   /* --------------------------------------------------------------- state */
@@ -152,9 +152,14 @@ export class App {
 
   private applyMode(mode: Mode): void {
     document.body.dataset.mode = mode;
-    for (const a of document.querySelectorAll<HTMLAnchorElement>('#mode-tabs a')) {
-      if (a.dataset.mode === mode) a.setAttribute('aria-current', 'page');
-      else a.removeAttribute('aria-current');
+    const toggle = $<HTMLAnchorElement>('#mode-toggle');
+    toggle.textContent = mode === 'story' ? 'Explore' : 'Story';
+    toggle.href = mode === 'story' ? '#explore' : '#story';
+    if (mode === 'methods') $('#methods-link').setAttribute('aria-current', 'page');
+    else $('#methods-link').removeAttribute('aria-current');
+    if (mode !== 'story') {
+      this.scan = false;
+      this.globe.setScan(false, false);
     }
     $('#story-panel').hidden = mode !== 'story';
     $('#explore-panel').hidden = mode !== 'explore';
@@ -178,28 +183,45 @@ export class App {
       LAYER_IDS.map((id) => [id, { ...this.store.get().layers[id], visible: ch.layers.includes(id) }]),
     ) as AppState['layers'];
     this.pendingView = ch.camera;
+    this.scan = ch.scan === true;
     const sameBody = this.store.get().body === ch.body;
+    if (sameBody) this.globe.setScan(this.scan && ch.body === 'earth', !prefersReducedMotion());
     this.store.set({ body: ch.body, targetId: ch.targetId, layers, isolate: null, selection: null });
     if (sameBody) this.flyPending();
   }
 
   private flyPending(): void {
     if (!this.pendingView) return;
-    this.globe.flyTo(this.pendingView, prefersReducedMotion() ? 0 : 2.2);
+    this.globe.flyTo(this.pendingView, prefersReducedMotion() ? 0 : 2.8);
     this.pendingView = null;
   }
 
   private async mountBody(body: Body): Promise<void> {
     const loading = $('#globe-loading');
+    const globeEl = $('#globe');
     loading.hidden = false;
-    loading.textContent = `Building ${BODY_META[body].label} globe…`;
+    loading.textContent = BODY_META[body].label;
     $('#imagery-status').className = 'status-chip';
     $('#imagery-status').textContent = 'Connecting to imagery…';
-    const run = this.globe.mount(body, this.store.get().baseSource[body]).then(async () => {
-      if (this.globe.currentBody !== body) return;
-      await this.applyScene();
-      this.flyPending();
-    });
+    const fade = async (): Promise<void> => {
+      if (globeEl.classList.contains('is-hidden') || prefersReducedMotion()) {
+        globeEl.classList.add('is-hidden');
+        return;
+      }
+      globeEl.classList.add('is-hidden');
+      await new Promise((r) => setTimeout(r, 450));
+    };
+    const run = fade()
+      // A newer body switch may have happened during the fade: only the latest one builds.
+      .then(() =>
+        this.store.get().body === body ? this.globe.mount(body, this.store.get().baseSource[body]) : undefined,
+      )
+      .then(async () => {
+        if (this.globe.currentBody !== body) return;
+        await this.applyScene();
+        this.flyPending();
+        globeEl.classList.remove('is-hidden');
+      });
     this.mounting = run.catch(() => undefined);
     try {
       await run;
@@ -207,7 +229,10 @@ export class App {
       $('#imagery-status').className = 'status-chip warn';
       $('#imagery-status').textContent = `Globe error: ${err instanceof Error ? err.message : String(err)}`;
     } finally {
-      if (this.globe.currentBody === body || this.globe.currentBody === null) loading.hidden = true;
+      if (this.globe.currentBody === body || this.globe.currentBody === null) {
+        loading.hidden = true;
+        globeEl.classList.remove('is-hidden');
+      }
     }
   }
 
@@ -224,6 +249,7 @@ export class App {
     const body = this.globe.currentBody;
     if (!body) return;
     this.globe.setBaseOpacity(s.layers.base.visible ? this.alpha('base') : 0);
+    this.globe.setScan(s.mode === 'story' && this.scan && body === 'earth', !prefersReducedMotion());
 
     const want = (o: Overlay): LayerId | null =>
       o.body !== body

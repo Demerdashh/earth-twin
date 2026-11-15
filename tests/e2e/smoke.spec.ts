@@ -23,6 +23,31 @@ const debug = (page: Page): Promise<Debug> =>
 const rankingIds = (page: Page): Promise<string[]> =>
   page.locator('#ranking-list li').evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.candidateId ?? ''));
 
+test('nothing in the app starts until the preloader has completely finished', async ({ page }) => {
+  await page.goto('/?data=mock#story');
+  await expect(page.locator('#preloader')).toBeVisible();
+  await page.waitForTimeout(800);
+  // Still loading: no app object, no globe canvas, content inert.
+  expect(
+    await page.evaluate(() => 'ready' in ((window as unknown as { __analogFinder?: object }).__analogFinder ?? {})),
+  ).toBe(false);
+  await expect(page.locator('#globe canvas')).toHaveCount(0);
+  await expect(page.locator('#app')).toHaveAttribute('inert', '');
+
+  await ready(page);
+  await expect(page.locator('#preloader')).toHaveCount(0);
+  await expect(page.locator('#app')).not.toHaveAttribute('inert', '');
+  await expect(page.locator('#globe canvas')).toHaveCount(1);
+
+  // Fast chapter jumps (Moon -> Earth -> Moon, passing Mars while scrolling) must end on the last body.
+  await page.locator('[data-dot="search"]').click();
+  await page.locator('[data-dot="fingerprint"]').click();
+  await page.waitForTimeout(1500);
+  await ready(page);
+  expect((await debug(page)).body).toBe('moon');
+  expect((await debug(page)).ellipsoidRadii[0]).toBe(1737400);
+});
+
 test('loads, switches bodies with the right ellipsoid, and re-ranks when a weight changes', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));

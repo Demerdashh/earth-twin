@@ -8,6 +8,9 @@ tools/*
 !tools/README.md
 !tools/scripts/
 
+# Design reference videos (kept locally; too large to commit)
+vid-reference/
+
 # Raw downloaded data (never committed)
 data/raw/*
 !data/raw/README.md

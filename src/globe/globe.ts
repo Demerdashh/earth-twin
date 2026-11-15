@@ -19,8 +19,15 @@ import {
   ScreenSpaceEventType,
   SingleTileImageryProvider,
   SkyAtmosphere,
-  SkyBox,
   VerticalOrigin,
+  ColorGeometryInstanceAttribute,
+  CylinderGeometry,
+  DirectionalLight,
+  EasingFunction,
+  GeometryInstance,
+  Matrix4,
+  PerInstanceColorAppearance,
+  Primitive,
   Viewer,
   defined,
 } from 'cesium';
@@ -28,7 +35,7 @@ import 'cesium/Build/Cesium/Widgets/widgets.css';
 import { tileSourcesFor, type TileSource } from '../config/sources';
 import type { Body, Overlay } from '../contract/types';
 import { BODY_META, ELLIPSOIDS } from './bodies';
-import { localProvider, resolveImagery, type ImageryStatus } from './imagery';
+import { fallbackSource, localProvider, resolveImagery, type ImageryStatus } from './imagery';
 
 export interface View {
   lon: number;
@@ -51,6 +58,8 @@ export interface MarkerSpec {
 export type PickResult = { kind: 'marker'; id: string } | { kind: 'point'; lon: number; lat: number };
 
 const MAX_TILE_ERRORS = 6;
+const LIGHT_TMP = new Cartesian3();
+const SCAN_PERIOD_S = 7;
 const MARKER_HEIGHT_M = 2000;
 /** Markers closer than this to the camera are never hidden by the globe (avoids z-fighting up close). */
 const NEAR_NO_DEPTH_TEST_M = 1_500_000;
@@ -63,6 +72,7 @@ export class Globe {
   private markers = new Map<string, Entity[]>();
   private handler: ScreenSpaceEventHandler | null = null;
   private mountToken = 0;
+  private scan: { primitive: Primitive; stop: () => void } | null = null;
 
   constructor(
     private readonly container: HTMLElement,
@@ -93,7 +103,10 @@ export class Globe {
       baseLayer: false,
       terrainProvider: new EllipsoidTerrainProvider({ ellipsoid }),
       skyAtmosphere: isEarth ? new SkyAtmosphere(ellipsoid) : false,
-      skyBox: SkyBox.createEarthSkyBox(),
+      // Transparent canvas: the CSS space gradient behind it is the sky (reference video 01).
+      skyBox: false,
+      contextOptions: { webgl: { alpha: true } },
+      orderIndependentTranslucency: false,
       animation: false,
       timeline: false,
       baseLayerPicker: false,
@@ -107,12 +120,27 @@ export class Globe {
       requestRenderMode: true,
       maximumRenderTimeChange: Infinity,
     });
-    viewer.scene.globe.showGroundAtmosphere = isEarth;
-    viewer.scene.globe.enableLighting = false;
-    viewer.scene.globe.baseColor = Color.fromCssColorString('#1a2230');
-    viewer.scene.backgroundColor = Color.fromCssColorString('#05070b');
-    if (viewer.scene.sun) viewer.scene.sun.show = false;
-    if (viewer.scene.moon) viewer.scene.moon.show = false;
+    const scene = viewer.scene;
+    scene.backgroundColor = Color.TRANSPARENT;
+    scene.globe.baseColor = Color.fromCssColorString('#0b1424');
+    scene.globe.showGroundAtmosphere = isEarth;
+    if (scene.sun) scene.sun.show = false;
+    if (scene.moon) scene.moon.show = false;
+    // Soft key light that follows the camera from the upper left: every view gets the same
+    // sculpted, sunlit look regardless of the real sun position.
+    const light = new DirectionalLight({ direction: new Cartesian3(1, 0, 0), intensity: 2.6 });
+    scene.light = light;
+    scene.globe.enableLighting = true;
+    scene.globe.dynamicAtmosphereLighting = true;
+    scene.globe.dynamicAtmosphereLightingFromSun = false;
+    scene.preRender.addEventListener(() => {
+      const c = scene.camera;
+      const d = light.direction;
+      Cartesian3.multiplyByScalar(c.directionWC, 1, d);
+      Cartesian3.add(d, Cartesian3.multiplyByScalar(c.rightWC, 0.55, LIGHT_TMP), d);
+      Cartesian3.subtract(d, Cartesian3.multiplyByScalar(c.upWC, 0.45, LIGHT_TMP), d);
+      Cartesian3.normalize(d, d);
+    });
     (viewer.cesiumWidget.creditContainer as HTMLElement).classList.add('cesium-credits');
     this.viewer = viewer;
     this.body = body;
@@ -139,14 +167,15 @@ export class Globe {
         errors += 1;
         if (errors < MAX_TILE_ERRORS || token !== this.mountToken || viewer.isDestroyed()) return;
         remove();
-        const fallback = new ImageryLayer(localProvider(status.source, ellipsoid));
+        const local = fallbackSource(sources) ?? status.source;
+        const fallback = new ImageryLayer(localProvider(local, ellipsoid));
         if (this.baseLayer) viewer.imageryLayers.remove(this.baseLayer, true);
         viewer.imageryLayers.add(fallback, 0);
         this.baseLayer = fallback;
         this.events.onImageryStatus({
           kind: 'local',
-          source: status.source,
-          reason: 'Too many tile errors from the remote server',
+          source: local,
+          reason: 'too many tile errors from the remote server',
         });
       });
     }
@@ -246,13 +275,73 @@ export class Globe {
     viewer.scene.requestRender();
   }
 
+  /**
+   * A thin translucent glass ring (a short cylinder slightly wider than the planet) gliding
+   * pole to pole — the "scan" from reference video 01. Purely decorative; it never changes data.
+   * Only its modelMatrix changes per frame, so no geometry is rebuilt while it moves.
+   */
+  setScan(active: boolean, animate: boolean): void {
+    const viewer = this.viewer;
+    if (!viewer) return;
+    if (active && this.scan) return; // already sweeping
+    if (this.scan) {
+      this.scan.stop();
+      viewer.scene.primitives.remove(this.scan.primitive);
+      this.scan = null;
+    }
+    viewer.scene.requestRenderMode = true;
+    if (!active) {
+      viewer.scene.requestRender();
+      return;
+    }
+    const r = this.ellipsoid.radii;
+    const primitive = new Primitive({
+      geometryInstances: new GeometryInstance({
+        geometry: new CylinderGeometry({
+          length: r.z * 0.2,
+          topRadius: r.x * 1.045,
+          bottomRadius: r.x * 1.045,
+          slices: 180,
+          vertexFormat: PerInstanceColorAppearance.FLAT_VERTEX_FORMAT,
+        }),
+        attributes: {
+          color: ColorGeometryInstanceAttribute.fromColor(Color.fromCssColorString('#a8dcff').withAlpha(0.17)),
+        },
+      }),
+      appearance: new PerInstanceColorAppearance({ flat: true, translucent: true, closed: false }),
+      asynchronous: false,
+      modelMatrix: Matrix4.fromTranslation(new Cartesian3(0, 0, r.z * 0.25)),
+    });
+    viewer.scene.primitives.add(primitive);
+    const t0 = performance.now();
+    const offset = new Cartesian3();
+    const stop = animate
+      ? viewer.scene.preRender.addEventListener(() => {
+          const phase = ((performance.now() - t0) / 1000 / SCAN_PERIOD_S) % 2;
+          const k = phase < 1 ? phase : 2 - phase; // ping-pong 0..1
+          const eased = k * k * (3 - 2 * k);
+          offset.z = r.z * (0.7 - 1.4 * eased);
+          Matrix4.fromTranslation(offset, primitive.modelMatrix);
+        })
+      : () => undefined;
+    this.scan = { primitive, stop };
+    viewer.scene.requestRenderMode = !animate;
+    viewer.scene.requestRender();
+  }
+
   flyTo(view: View, durationSec = 2.2): void {
     const viewer = this.viewer;
     if (!viewer) return;
     const destination = Cartesian3.fromDegrees(view.lon, view.lat, view.height, this.ellipsoid);
     const orientation = { heading: 0, pitch: CesiumMath.toRadians(-90), roll: 0 };
     if (durationSec <= 0) viewer.camera.setView({ destination, orientation });
-    else viewer.camera.flyTo({ destination, orientation, duration: durationSec });
+    else
+      viewer.camera.flyTo({
+        destination,
+        orientation,
+        duration: durationSec,
+        easingFunction: EasingFunction.QUINTIC_IN_OUT,
+      });
   }
 
   private installPicking(viewer: Viewer, ellipsoid: Ellipsoid): void {
@@ -283,6 +372,8 @@ export class Globe {
     this.handler = null;
     this.overlays.clear();
     this.markers.clear();
+    this.scan?.stop();
+    this.scan = null;
     this.baseLayer = null;
     if (this.viewer && !this.viewer.isDestroyed()) this.viewer.destroy();
     this.viewer = null;

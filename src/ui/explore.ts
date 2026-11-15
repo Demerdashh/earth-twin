@@ -141,8 +141,8 @@ export class ExplorePanel {
         h('h2', {}, h('label', { for: 'target-select' }, 'Target')),
         select,
         h(
-          'p',
-          { id: 'target-help', class: 'muted small' },
+          'span',
+          { id: 'target-help', class: 'sr-only' },
           'Lunar or Martian site whose fingerprint we search for on Earth.',
         ),
       ),
@@ -162,8 +162,11 @@ export class ExplorePanel {
         sliders,
         h(
           'p',
-          { class: 'muted small' },
-          `Fixed: ${fixed.map((f) => `${FEATURE_META[f].label} ${defaults[f]}`).join(', ')}. Elevation is off by default because each body measures height from a different datum.`,
+          {
+            class: 'muted small',
+            title: 'Elevation is off by default because each body measures height from a different datum.',
+          },
+          `Fixed: ${fixed.map((f) => `${FEATURE_META[f].label} ${defaults[f]}`).join(' · ')}`,
         ),
       ),
       h(
@@ -206,12 +209,8 @@ export class ExplorePanel {
             'Data sources',
           ),
         ),
-        h(
-          'p',
-          { class: 'muted small' },
-          'Exports the current ranking with your weights, every feature value and its provenance id.',
-        ),
       ),
+      h('p', { class: 'panel-foot' }, 'Terrain, heat, minerals, aridity — not gravity, radiation or vacuum.'),
     );
     this.renderRanking();
     this.renderLayers();
@@ -349,10 +348,15 @@ export class ExplorePanel {
         h(
           'div',
           { class: 'layer', 'data-layer': def.id },
-          h('div', { class: 'layer-head' }, vis, h('label', { for: `layer-${def.id}` }, def.label), iso),
-          h('p', { class: 'muted small' }, def.hint),
+          h(
+            'div',
+            { class: 'layer-head' },
+            vis,
+            h('label', { for: `layer-${def.id}`, title: def.hint }, def.label),
+            iso,
+          ),
           extra,
-          h('div', { class: 'layer-op' }, h('span', { class: 'small muted' }, 'Opacity'), op),
+          h('div', { class: 'layer-op' }, op),
         ),
       );
     }

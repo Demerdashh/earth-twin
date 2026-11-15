@@ -1,24 +1,21 @@
-// Base imagery with a fallback chain: remote tiles (sources.ts) -> local low-res tiles
-// (public/basemaps, real NASA tiles fetched by `npm run fetch:basemaps`) -> generated graticule.
+// Base imagery with a fallback: remote tiles (sources.ts), else the bundled low-resolution copy of
+// the body's primary layer (public/basemaps — real NASA tiles fetched by `npm run fetch:basemaps`).
 import {
   Credit,
   type Ellipsoid,
   GeographicTilingScheme,
   type ImageryProvider,
-  Rectangle,
-  SingleTileImageryProvider,
   UrlTemplateImageryProvider,
   WebMercatorTilingScheme,
 } from 'cesium';
-import { FALLBACK_MAX_LEVEL } from '../config/basemaps';
+import { FALLBACK_MAX_LEVEL, PRIMARY_SOURCE } from '../config/basemaps';
 import type { TileSource } from '../config/sources';
 
 export type ImageryStatus =
-  | { kind: 'remote'; source: TileSource }
-  | { kind: 'local'; source: TileSource; reason: string }
-  | { kind: 'graticule'; reason: string };
+  { kind: 'remote'; source: TileSource } | { kind: 'local'; source: TileSource; reason: string };
 
-const PROBE_TIMEOUT_MS = 6000;
+/** Generous: on slow machines the first Viewer build can block the main thread for seconds. */
+const PROBE_TIMEOUT_MS = 12_000;
 
 async function probe(url: string): Promise<boolean> {
   const ctrl = new AbortController();
@@ -64,64 +61,24 @@ export function localProvider(s: TileSource, ellipsoid: Ellipsoid): UrlTemplateI
   });
 }
 
-/** A plain graticule so the globe is never blank — clearly not imagery. */
-function graticuleProvider(ellipsoid: Ellipsoid): SingleTileImageryProvider {
-  const w = 1024;
-  const h = 512;
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext('2d');
-  if (ctx) {
-    ctx.fillStyle = '#1a2230';
-    ctx.fillRect(0, 0, w, h);
-    ctx.strokeStyle = 'rgba(160,180,200,0.35)';
-    ctx.lineWidth = 1;
-    for (let lon = 0; lon <= 360; lon += 30) {
-      const x = (lon / 360) * w;
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, h);
-      ctx.stroke();
-    }
-    for (let lat = 0; lat <= 180; lat += 30) {
-      const y = (lat / 180) * h;
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(w, y);
-      ctx.stroke();
-    }
-  }
-  return new SingleTileImageryProvider({
-    url: canvas.toDataURL('image/png'),
-    tileWidth: w,
-    tileHeight: h,
-    rectangle: Rectangle.MAX_VALUE,
-    ellipsoid,
-    credit: new Credit('No imagery available — graticule only'),
-  });
-}
+/** The body's primary layer — the only one with a bundled offline copy. */
+export const fallbackSource = (sources: readonly TileSource[]): TileSource | undefined =>
+  sources.find((s) => s.id === PRIMARY_SOURCE[s.body]) ?? sources[0];
 
-/** Pick the first reachable imagery for a body. */
+/** Probe all remote sources in parallel; take the preferred reachable one, else the local copy. */
 export async function resolveImagery(
   sources: readonly TileSource[],
   ellipsoid: Ellipsoid,
   preferredId?: string,
 ): Promise<{ provider: ImageryProvider; status: ImageryStatus }> {
   const ordered = [...sources].sort((a, b) => Number(b.id === preferredId) - Number(a.id === preferredId));
-  for (const s of ordered) {
-    if (await probe(level0(s.urlTemplate)))
-      return { provider: remoteProvider(s, ellipsoid), status: { kind: 'remote', source: s } };
-  }
-  const primary = ordered[0];
-  if (primary && (await probe(level0(localTemplate(primary))))) {
-    return {
-      provider: localProvider(primary, ellipsoid),
-      status: { kind: 'local', source: primary, reason: 'Remote tile server unreachable' },
-    };
-  }
+  const reachable = await Promise.all(ordered.map((s) => probe(level0(s.urlTemplate))));
+  const remote = ordered.find((_, i) => reachable[i]);
+  if (remote) return { provider: remoteProvider(remote, ellipsoid), status: { kind: 'remote', source: remote } };
+  const local = fallbackSource(sources);
+  if (!local) throw new Error('no imagery source configured for this body');
   return {
-    provider: graticuleProvider(ellipsoid),
-    status: { kind: 'graticule', reason: 'No imagery reachable (remote or local)' },
+    provider: localProvider(local, ellipsoid),
+    status: { kind: 'local', source: local, reason: 'remote tile server unreachable' },
   };
 }
