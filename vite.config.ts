@@ -1,30 +1,13 @@
 import { defineConfig } from 'vite';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
 
-// BASE_PATH: '/' for Netlify / local, '/<repo>/' for GitHub Pages (set by the deploy workflow).
-const base = process.env.BASE_PATH ?? '/';
-const cesiumBuild = 'node_modules/cesium/Build/Cesium';
-
+// Static site: Vercel serves dist/ at the domain root. BASE_PATH only for sub-path hosting.
 export default defineConfig({
-  base,
-  define: {
-    CESIUM_BASE_URL: JSON.stringify(`${base}cesium/`),
-  },
-  plugins: [
-    viteStaticCopy({
-      targets: ['Workers', 'ThirdParty', 'Assets', 'Widgets'].map((dir) => ({
-        src: `${cesiumBuild}/${dir}`,
-        dest: 'cesium',
-        // keep dist/cesium/<dir>/..., dropping node_modules/cesium/Build/Cesium
-        rename: { stripBase: 4 },
-      })),
-    }),
-  ],
+  base: process.env.BASE_PATH ?? '/',
   build: {
     target: 'es2022',
-    chunkSizeWarningLimit: 6000,
+    chunkSizeWarningLimit: 900,
     rollupOptions: {
-      output: { manualChunks: (id) => (id.includes('node_modules/cesium') ? 'cesium' : undefined) },
+      output: { manualChunks: (id) => (id.includes('node_modules/three') ? 'three' : undefined) },
     },
   },
   server: { port: 5173 },

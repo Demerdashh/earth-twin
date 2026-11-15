@@ -1,135 +1,183 @@
-# Analog Finder
+# AnalogLens (NASA Space Apps 2026)
 
-**Where on Earth is there a place that resembles a given lunar or Martian site?**
-A NASA Space Apps 2026 project: an offline Python pipeline turns open NASA / space-agency data into
-small contract files, and a static CesiumJS web app lets you explore Earth analogs for Moon and
-Mars targets, in a guided **Story mode** or a hands-on **Explore mode**.
+Challenge: *Identify Earth Locations that Analog the Permanent Moon Base Locations and Mars.*
 
-> **Status: v1 runs on MOCK data.** The model and the real data pipeline are being built by the
-> data team. Until they land, the app uses a clearly labelled mock set (`public/data/mock/`, a
-> "Mock data" badge on screen, `"mock": true` in every file). Swapping in real output needs no
-> code changes; see [Going real](#going-real).
+AnalogLens ranks Earth locations as analogs for a Moon-base or Mars target **for a specific
+mission task**, and explains every result dimension by dimension: what matches, how well, and
+where the analogy breaks. Terrain shape (compared by a vision model on same-scale relief
+images of Earth, Moon, and Mars) is one dimension among several, never the whole score.
 
-| Preloader | Story | Explore |
-| --- | --- | --- |
-| ![Preloader](docs/screenshots/preloader.jpg) | ![Story mode](docs/screenshots/story-hook.jpg) | ![Explore mode](docs/screenshots/explore.jpg) |
+> **Read this first**
+> * The site shows **real data only**. `scripts/demo_synthetic.py` still exists to test the pipeline,
+>   but its output carries `"synthetic": true` and `npm run data:publish` and the site both refuse it.
+>   Until the real `out/` is published, the site shows targets and documented analog sites from
+>   `config/` and says "Awaiting pipeline output" instead of showing any score.
+> * Values marked **VERIFY** in `config/` are placeholders from memory. Replace them before presenting.
+> * This is preparation code. Ask your local organizers how they treat code written before the
+>   event, and say plainly in your submission what was prepared in advance.
 
-**Design.** Cinematic and minimal, after `vid-reference/01` (kept locally, git-ignored): deep-navy
-space, a sunlit globe with soft camera-following light, a glass "scan" ring sweeping the Earth, and
-almost no text. There is no nav bar, just a wordmark, the data badge, an Explore/Story toggle and a
-Methods icon. A space **preloader** turns a small real Moon (LRO WAC, 35 KB) while the data set
-and the 3D engine load, then lifts the Moon off the top as the content appears. The app itself (globe,
-story, camera flights, observers) is only constructed after the preloader has completely finished.
-The engine is a separate chunk, so the first paint only needs about 46 KB of gzipped JS.
+## The site
 
-- Architecture and plan: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- Data contract (schemas, units, similarity formula, ownership): [CLAUDE.md](CLAUDE.md)
-- Local toolchain: [tools/README.md](tools/README.md) · Raw data: [data/raw/README.md](data/raw/README.md)
-
-## Setup
-
-Requirements: **Node.js ≥ 20** on PATH (tested 22.23), internet for the first setup. Nothing else:
-Python 3.11, its packages and the Playwright browser are installed **inside `tools/`**.
+One page, one 3D scene with the Moon, Earth and Mars together (not to scale). Glowing arcs link each
+Moon/Mars target to its Earth analogs; dotted areas mark the targets, the known analog sites and the
+Egypt deep-dive sites. Click a dotted area to dive in: real NASA tiles load for a sharp close-up, a
+small card explains the place, and its links fly you across space to the matching site on the other
+body. A dock switches bodies, shows or hides the dotted areas, and plays a 30-second guided tour for the
+video. Everything else (method, data status, sources, limits) is behind the (i) button.
 
 ```bash
-npm run setup          # creates tools/, installs uv + CPython 3.11 + venv + npm deps + Chromium, prints versions
+npm run setup         # everything into tools/: uv, Python 3.11 + pinned deps, npm packages, Chromium
+npm run dev           # http://localhost:5173
+npm run data:publish  # validate out/ (refuses synthetic) and copy it to public/data/ for the site
+npm run verify        # typecheck, lint, web unit tests, pipeline tests, build
+npm run test:e2e      # browser tests: preloader, one scene, dive in, travel between bodies
+npm run textures      # rebuild the globe textures from NASA tiles (config/imagery.json)
 ```
 
-Re-running it is safe. Windows uses `tools/scripts/setup.ps1`, macOS/Linux `tools/scripts/setup.sh`.
+Deploy on **Vercel**: import the repo, the settings come from `vercel.json` (build `npm run build`,
+output `dist/`). Every push to `main` redeploys. Publish real output first so it ships with the site.
 
-## Run
+Performance: the first paint needs about 3 KB of gzipped JS; three.js (140 KB gzipped) and the three
+globe textures (about 1.1 MB WebP) load during the preloader.
+
+## Quick start (pipeline)
+
+Dependencies live in `pyproject.toml` and are pinned in `uv.lock`. Install
+[uv](https://docs.astral.sh/uv/); it downloads Python 3.11 itself (see `.python-version`).
 
 ```bash
-npm run dev            # http://localhost:5173  (mock data by default)
-npm run build          # type-check + static build into dist/
-npm run preview        # serve dist/ on http://localhost:4173
+uv sync                                   # core: numpy, scipy, pillow (tests + synthetic demo)
+uv run python tests/test_core.py          # 8 checks, a few seconds
+uv run python scripts/demo_synthetic.py   # about 20 s, writes out/
 ```
 
-Append `?data=mock` or `?data=real` to the URL to override the data source at runtime.
+Pick the extras your lane needs. `uv sync` installs exactly what you list, so list them all
+in one command (running it again with fewer extras removes the others):
 
-## Mock mode (default)
+| Lane | Command |
+| --- | --- |
+| Frontend / API | `uv sync --extra serve` |
+| Data pipeline | `uv sync --extra real --extra serve` |
+| Everything, incl. DINOv2 (large torch download) | `uv sync --all-extras` |
 
+Serve results (PowerShell first, then macOS/Linux):
+
+```powershell
+$env:ANALOGLENS_OUT = "out"; uv run uvicorn analoglens.api:app --reload   # http://127.0.0.1:8000/docs
+```
 ```bash
-npm run mock:generate               # rebuild public/data/mock/ from pipeline/mock/sites.toml (deterministic)
-npm run validate:data               # validate it with the browser's validator (TypeScript)
-npm run pipeline:validate           # validate it with the pipeline's validator (Python)
-npm run pipeline:validation-report  # where each known analog ranks per target
+ANALOGLENS_OUT=out uv run uvicorn analoglens.api:app --reload
 ```
 
-The mock set has 2 Moon targets, 2 Mars targets and 25 Earth candidates, including the known
-analogs (Atacama, Haughton, Mauna Kea, Iceland, San Francisco Volcanic Field, Dry Valleys, Rio
-Tinto, MDRS) and two vegetated sites that the NDVI filter excludes. Values are hand-picked to be
-physically plausible, and they are **not measurements**.
+Check DINOv2 once: `uv sync --all-extras` then `uv run python scripts/check_dino.py`.
 
-## Going real
+**Colab** (pip only, torch already installed there): `pip install -q -e ".[real]"`. Do not
+install the `dino` extra on Colab; it would replace Colab's GPU build of torch.
 
-1. The data team writes contract files (see [CLAUDE.md](CLAUDE.md)) into `public/data/` with `"mock": false`.
-2. Validate: `npm run validate:data -- public/data` (and/or `npm run pipeline:validate -- public/data`).
-3. Switch: `VITE_DATA_SOURCE=real npm run build` (or change the default in `src/config/data-source.ts`).
+**Adding a dependency:** `uv add <package>` (or `uv add --optional real <package>`), then
+commit both `pyproject.toml` and `uv.lock`. Never edit `uv.lock` by hand; if two people
+change it at once, take either version and run `uv lock` again.
 
-If real files break the contract, the app shows every error (file + JSON path) and offers the mock
-set instead. It never renders invalid data. The mock set stays in the repo for tests and as a demo
-fallback. Expected raw inputs and how to obtain them: [data/raw/README.md](data/raw/README.md);
-Earth Engine export template: `pipeline/earth_engine/export_earth_features.py`.
+## What is in the box
 
-## Quality
-
-```bash
-npm run verify         # typecheck + ESLint/Prettier + vitest + contract validation + pytest + mypy + build
-npm run test:e2e       # Playwright smoke: load, switch Earth/Moon/Mars, move a slider, ranking changes
-npm run screenshots    # regenerate docs/screenshots/*.jpg
-npm run check:sources  # probe every tile endpoint / dataset page in src/config/sources.ts (OK/FAIL)
-npm run fetch:basemaps # refresh the offline fallback tiles in public/basemaps/
+```
+analoglens/
+  geo.py        metric tiles on any body (poles included), raster sampling, polar stereo helper
+  terrain.py    slope, roughness, relief, linearity; the relief image the vision model sees
+  embed.py      DINOv2 with 4-rotation averaging; descriptor fallback (no downloads)
+  index.py      nearest-neighbour index (FAISS or numpy) with calibrated 0-1 terrain scores
+  scoring.py    per-dimension scores, Earth-relative scoring, weighted geometric mean, novelty
+  cards.py      fingerprint cards: bars, breaks with reasons, fixed limits, suggested tests
+  validate.py   ROC-AUC, known-site percentiles, ablation
+  render.py     shaded-relief PNGs for side-by-side views
+  pipeline.py   runs everything and writes the JSON below
+  api.py        FastAPI server for the pre-computed JSON (works offline)
+  synthetic.py  synthetic terrain generators (testing only)
+config/         dimensions, tasks, body limits, targets, known analogs, Egypt sites, imagery endpoints
+scripts/        demo_synthetic, cut_tiles, cut_target, sample_climate, run_real, check_dino
+tests/          core checks (test_core.py) and the site tests (web/)
+src/            the site: data/ (config + real output + links), scene/ (three.js), ui/
+public/         textures/ (globe imagery) and data/ (published real output, from npm run data:publish)
+tools/          local toolchain; scripts/ holds setup, publish-data, check-sources, build_textures
 ```
 
-## Deploy
+## Saturday workflow with real data
 
-- **GitHub Pages:** push to `main`. `.github/workflows/deploy.yml` runs setup and every check, builds
-  with `BASE_PATH=/<repo>/` and publishes `dist/`. In the repo settings, set Pages → Source to
-  "GitHub Actions".
-- **Netlify:** connect the repo. `netlify.toml` builds with `npm run build` and publishes `dist/`.
-- **Anywhere static:** `npm run build` and upload `dist/`. For a sub-path, build with
-  `BASE_PATH=/sub/path/ npx vite build`.
+All tiles share one grid: **463 m per pixel, 64 x 64 pixels (about 30 km)** for the regional
+screen. For zoom-ins (NASA's south-pole region files, Kharga detail) pick a finer resolution
+and cut Earth *and* targets at that same resolution.
 
-No backend and no Cesium ion token are needed. Imagery comes straight from NASA Trek / GIBS. If a
-tile server is unreachable, the app falls back to a bundled low-resolution copy, then to a
-graticule, and says so in the status bar.
+1. **Earth tiles.** ETOPO 2022 at 15 arc-seconds (NOAA) for the regions you screen, plus
+   Copernicus DEM 90 m tiles (free on AWS open data) around each known analog site, because
+   validation needs tiles there.
+   ```bash
+   uv run python scripts/cut_tiles.py --raster etopo_N30E015.tif --raster etopo_N30E030.tif \
+       --bbox 20 32 24 36 --step-km 30 --prefix EG --out data/earth_egypt.npz
+   uv run python scripts/cut_tiles.py --raster cop90_*.tif --centers config/known_analogs.json \
+       --prefix KN --out data/earth_known.npz
+   ```
+2. **Climate features.** Export monthly MODIS land surface temperature (MOD11C3) and NDVI
+   (MOD13C2) as GeoTIFFs from AppEEARS, and MERRA-2 dust optical depth from Giovanni.
+   ```bash
+   uv run python scripts/sample_climate.py --tiles data/earth_egypt.npz \
+       --monthly-lst "data/lst/*.tif" --monthly-ndvi "data/ndvi/*.tif" \
+       --layer dust_aod=data/merra2_dust.tif --out data/earth_egypt_features.npz
+   ```
+   Do the same for `earth_known.npz`.
+3. **Targets.** Coordinates and profiles come from `config/targets.json`.
+   ```bash
+   uv run python scripts/cut_target.py --key medusae_fossae --raster mola_megdr.lbl --body mars --out data/targets
+   uv run python scripts/cut_target.py --key shackleton_rim --raster lola_64ppd.lbl --body moon --out data/targets
+   ```
+   Open each preview PNG and check the feature sits in the middle. For the south pole you can
+   also use NASA's ready-gridded region files from the
+   [App Development Challenge 2023 page](https://www.nasa.gov/learning-resources/app-development-challenge/2023-handbook-and-coding-components/)
+   (`--adc-height/--adc-lat/--adc-lon`); those regions are small, so the script tells you the
+   finest resolution that fits.
+4. **Run and serve.**
+   ```bash
+   uv run python scripts/run_real.py --earth data/earth_egypt.npz --earth data/earth_known.npz \
+       --features data/earth_egypt_features.npz --features data/earth_known_features.npz \
+       --targets data/targets --embedder auto --max-ndvi 0.3 --out out
+   ANALOGLENS_OUT=out uv run uvicorn analoglens.api:app --reload
+   ```
+   `--max-ndvi 0.3` drops clearly green tiles before embedding (the analog-prone mask).
 
-## Project layout
+## API contract (frozen for the frontend)
 
-```text
-CLAUDE.md            data contract (features, units, schemas, ownership)
-schemas/             JSON Schema per contract file, shared by Python and TypeScript
-data/raw/            raw downloads (git-ignored except README)
-pipeline/            Python 3.11: contract/ (ranking, validators), mock/ (generator + specs),
-                     validation.py, earth_engine/ (export template), tests/
-public/data/mock/    mock contract files       public/data/  real output goes here
-public/basemaps/     offline fallback tiles (real NASA imagery, levels 0-2)
-src/                 TypeScript app: config/ (sources.ts, data-source.ts), contract/, data/ (loader,
-                     validator), rank/, globe/ (Cesium), ui/, story/chapters.ts (all Story text)
-tests/               vitest unit tests and Playwright e2e
-tools/               local toolchain (only README and scripts/ are committed)
-```
+| Endpoint | Returns |
+| --- | --- |
+| `GET /targets` | `targets[]`: key, label, body, lat, lon, tasks, profile, image |
+| `GET /tasks` | `tasks{}` with label, weights, tests; `dimensions{}` with label and unit |
+| `GET /rank?target=&task=&limit=` | `results[]`: rank, tile_id, lat, lon, score, coverage, dims{}, novel, nearest_known, nearest_known_km |
+| `GET /card/{tile_id}?target=&task=` | score, strong_for[], bars[] (label, score, status, earth_value, target_value, unit, note), breaks[] (kind: data, unreachable, fixed), tests[], images{earth, target} |
+| `GET /validation` | per target and task: auc, known_sites[] percentiles, ablation |
+| `GET /img/<file>.png` | relief images used by cards |
 
-For three people working in parallel: data people own `pipeline/` and `public/data/`, the
-interface person owns `src/`, and both sides meet only at `schemas/` + `CLAUDE.md`.
+Cards exist for the top N results of each list (`--cards`, default 20 for real runs, 10 in
+the demo). Bar `status` is one of `strong` (0.7 or more), `partial` (0.4 to 0.7), `breaks`
+(below 0.4), `closest on Earth` (target out of Earth's reach), or `no data`.
 
-## Known limitations
+## How scoring works
 
-- **Mock data only.** The ranks, heatmaps and validation results on screen demonstrate the
-  mechanism, not real analog quality. The "discovery" chapter deliberately claims nothing in mock mode.
-- **No real pipeline or model yet.** Feature extraction, fingerprints and the similarity export
-  for real rasters are owned by the data team. The "AI and model" section of the architecture is
-  intentionally empty.
-- **Unverified inputs.** All target and known-analog coordinates are flagged `coords_verified: false`,
-  and all feature-dataset names are `unverified` until checked at the source.
-- **Heatmap vs sliders.** The similarity PNG is the pipeline result at default weights. The sliders
-  re-rank the exported candidate pool live, but they do not recolour the heatmap.
-- **Mock grid coverage.** Click popups have values only near candidates and targets (plus mock polar
-  ice caps on the Moon and Mars). Elsewhere they say "no data".
-- **Scientific scope.** Similarity covers terrain, thermal range, mineralogy and aridity, not
-  gravity, radiation or vacuum. Mineral and ice values are cross-instrument proxies.
-- **Bundle size.** CesiumJS is about 4.4 MB minified (about 1.2 MB gzipped) and is loaded up front.
-  Data files are small: PNG overlays are 360×180 and grids are sparse.
-- **Optional three.js site mesh** is not implemented in v1.
-- **Responsive down to tablet** (about 768 px). Phones are not a target.
+* Each dimension scores 0 to 1 against the target: a Gaussian around the target value (in
+  log space for roughness and relief), or calibrated cosine similarity for terrain shape.
+* If no Earth tile comes close (nothing on Earth reaches −203 °C), dimensions flagged
+  `earth_relative` are scored by closeness relative to the rest of Earth, shown as
+  "closest on Earth", and the card states the gap. They never count as strong.
+* A task's weights combine dimensions with a weighted geometric mean, so one terrible
+  dimension drags the total down. Missing data lowers coverage instead of counting as a match.
+* The novelty flag marks results more than 200 km from every known analog site.
+
+To add a target, task, or dimension, edit the JSON in `config/`; no code changes needed.
+New dimensions need a matching feature column (from `sample_climate.py --layer name=...`).
+
+## Known limits
+
+* DINOv2 is written but was not run in the build environment; run `scripts/check_dino.py`.
+  The descriptor embedder is the tested fallback and the baseline for the ablation slide.
+* Earth tiles near the poles (Antarctica) work geometrically, but MODIS and EMIT coverage
+  thins out there; check the coverage numbers `sample_climate.py` prints.
+* Kamil Crater is 45 m wide: it needs imagery or a 30 m DEM, not 463 m tiles.
+* Terrain at 463 m per pixel shows craters, massifs, and yardang fields, not boulders or
+  individual dunes; use the zoom scale for those.

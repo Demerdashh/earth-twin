@@ -1,0 +1,54 @@
+{
+ "_about": "Display imagery only (never scored). The single place for tile endpoints: read by the web app (region close-ups), tools/scripts/build_textures.py (globe textures) and `npm run check:sources`. All endpoints verified 2026-11-14 (HTTP 200 on capabilities and a level-0 tile, CORS *).",
+ "earth": {
+  "color": {
+   "product": "BlueMarble_ShadedRelief_Bathymetry",
+   "provider": "NASA GIBS",
+   "credit": "NASA EOSDIS GIBS: Blue Marble shaded relief",
+   "url": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg",
+   "capabilities": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/1.0.0/WMTSCapabilities.xml",
+   "scheme": "webmercator",
+   "max_level": 8
+  }
+ },
+ "moon": {
+  "color": {
+   "product": "LRO_WAC_Mosaic_Global_303ppd_v02",
+   "provider": "NASA Moon Trek",
+   "credit": "NASA/GSFC/ASU: LRO WAC global mosaic via Moon Trek",
+   "url": "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/{z}/{y}/{x}.jpg",
+   "capabilities": "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/WMTSCapabilities.xml",
+   "scheme": "geographic",
+   "max_level": 8
+  },
+  "shade": {
+   "product": "LRO_LOLA_Shade_Global_256ppd_v06",
+   "provider": "NASA Moon Trek",
+   "credit": "NASA/GSFC: LRO LOLA hillshade via Moon Trek",
+   "url": "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_Shade_Global_256ppd_v06/1.0.0/default/default028mm/{z}/{y}/{x}.png",
+   "capabilities": "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_Shade_Global_256ppd_v06/1.0.0/WMTSCapabilities.xml",
+   "scheme": "geographic",
+   "max_level": 6
+  }
+ },
+ "mars": {
+  "color": {
+   "product": "Mars_Viking_MDIM21_ClrMosaic_global_232m",
+   "provider": "NASA Mars Trek",
+   "credit": "NASA/USGS: Viking MDIM 2.1 colour mosaic via Mars Trek",
+   "url": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_Viking_MDIM21_ClrMosaic_global_232m/1.0.0/default/default028mm/{z}/{y}/{x}.jpg",
+   "capabilities": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_Viking_MDIM21_ClrMosaic_global_232m/1.0.0/WMTSCapabilities.xml",
+   "scheme": "geographic",
+   "max_level": 7
+  },
+  "shade": {
+   "product": "Mars_MGS_MOLA_ClrShade_merge_global_463m",
+   "provider": "NASA Mars Trek",
+   "credit": "NASA/GSFC: MGS MOLA colour hillshade via Mars Trek",
+   "url": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_MGS_MOLA_ClrShade_merge_global_463m/1.0.0/default/default028mm/{z}/{y}/{x}.jpg",
+   "capabilities": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_MGS_MOLA_ClrShade_merge_global_463m/1.0.0/WMTSCapabilities.xml",
+   "scheme": "geographic",
+   "max_level": 7
+  }
+ }
+}

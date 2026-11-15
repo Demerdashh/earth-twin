@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 process.env.PLAYWRIGHT_BROWSERS_PATH ??= fileURLToPath(new URL('./tools/bin/ms-playwright', import.meta.url));
 
 export default defineConfig({
-  testDir: 'tests/e2e',
+  testDir: 'tests/web/e2e',
   timeout: 90_000,
   expect: { timeout: 20_000 },
   fullyParallel: false,

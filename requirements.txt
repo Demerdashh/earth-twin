@@ -1,9 +1,4 @@
-# Python 3.11 dependencies for pipeline/ — installed ONLY into tools/python (npm run setup).
-# Pinned for reproducibility. Real-data readers (rasterio/GDAL, earthengine-api) are NOT
-# installed yet: the real feature/similarity pipeline is owned by the data team and will
-# add its own pins here when it lands.
-numpy==2.2.6
-pillow==11.3.0
-jsonschema==4.25.1
-pytest==8.4.2
-mypy==1.18.2
+# Install with uv (see README). This file is kept for pip-only environments such as Colab:
+#   pip install -r requirements.txt
+# Dependencies are defined once, in pyproject.toml.
+-e .[real,serve]

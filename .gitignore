@@ -1,7 +1,8 @@
-# Dependencies and build output
+# Web: dependencies and build output
 node_modules/
 dist/
 *.tsbuildinfo
+.vercel/
 
 # Local toolchain: everything in tools/ except the README and our scripts
 tools/*
@@ -11,15 +12,29 @@ tools/*
 # Design reference videos (kept locally; too large to commit)
 vid-reference/
 
-# Raw downloaded data (never committed)
-data/raw/*
-!data/raw/README.md
+# Pipeline: raw inputs and run output (publish real output with `npm run data:publish`)
+out/
+out_*/
+data/
+*.npz
+*.img
+*.IMG
+*.lbl
+*.LBL
+*.tif
+*.hdf
+*.nc
 
 # Python
 __pycache__/
 *.pyc
+.venv/
 .pytest_cache/
-.mypy_cache/
+.ipynb_checkpoints/
+
+# Secrets
+.env
+*.token
 
 # Test artifacts
 test-results/

@@ -4,10 +4,12 @@ tools/bin
 tools/python
 tools/cache
 public
-pipeline
-schemas
-docs
+config
+analoglens
+notebooks
+scripts
 *.md
+uv.lock
 package-lock.json
 test-results
 playwright-report

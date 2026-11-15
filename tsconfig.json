@@ -19,9 +19,9 @@
   },
   "include": [
     "src",
-    "tests",
+    "tests/web",
     "tools/scripts/*.ts",
-    "schemas/*.json",
+    "config/*.json",
     "vite.config.ts",
     "vitest.config.ts",
     "playwright.config.ts",

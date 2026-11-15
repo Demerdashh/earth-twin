@@ -1,50 +1,53 @@
-import './styles/main.css';
-import { resolveDataSource } from './config/data-source';
-import { loadDataSet } from './data/loader';
+import './styles.css';
+import { loadOut } from './data/out';
 import { $ } from './ui/dom';
-import { renderContractErrors, renderFatal } from './ui/errors';
 import { Preloader } from './ui/preloader';
+import { mountSky } from './ui/sky';
 
 /**
- * Boot order (nothing in the app runs before the preloader is completely gone):
- *  1. preloader shows immediately (this entry chunk is tiny);
- *  2. in parallel: load + validate the data set, download the 3D engine chunk (not started);
- *  3. preloader exit animation plays to completion and removes itself;
- *  4. only then is the app constructed (globe, story, observers, camera flights).
+ * Boot order: the preloader shows at once (this entry chunk is tiny). Meanwhile the 3D engine
+ * chunk, the three globe textures and the real pipeline output (if published) load.
+ * Nothing in the app is constructed until the preloader has completely finished.
  */
+function loadImage(src: string): Promise<HTMLImageElement> {
+  const img = new Image();
+  img.decoding = 'async';
+  img.src = src;
+  return img.decode().then(() => img);
+}
+
 async function boot(): Promise<void> {
-  const source = resolveDataSource();
-  const preloader = new Preloader($('#preloader'), 2);
-  const app = $('#app');
-  // Let the preloader paint before the heavy engine chunk is fetched and parsed.
-  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-  const [result, appModule] = await Promise.all([
-    loadDataSet(source)
-      .catch((err: unknown) => ({
-        ok: false as const,
-        errors: [{ file: '(app)', path: '$', message: err instanceof Error ? err.message : String(err) }],
-      }))
-      .finally(() => preloader.step('data')),
-    import('./app/app')
-      .catch((err: unknown) => (err instanceof Error ? err : new Error(String(err))))
-      .finally(() => preloader.step('engine')),
+  mountSky();
+  const preloader = new Preloader($('#preloader'));
+  const base = import.meta.env.BASE_URL;
+  const work = Promise.all([
+    import('./start'),
+    loadOut(),
+    Promise.all([
+      loadImage(`${base}textures/moon.webp`),
+      loadImage(`${base}textures/earth.webp`),
+      loadImage(`${base}textures/mars.webp`),
+    ]),
   ]);
-
+  let result: Awaited<typeof work> | Error;
+  try {
+    result = await work;
+  } catch (err) {
+    result = err instanceof Error ? err : new Error(String(err));
+  }
+  preloader.markReady();
   await preloader.finish();
-  app.removeAttribute('inert');
-  app.removeAttribute('aria-hidden');
-  document.body.classList.remove('is-loading');
 
-  if (appModule instanceof Error) {
-    renderFatal(app, 'The 3D engine could not be loaded', appModule.message);
+  const app = $('#app');
+  app.removeAttribute('inert');
+  document.body.classList.remove('is-loading');
+  if (result instanceof Error) {
+    $('#fatal').hidden = false;
+    $('#fatal-msg').textContent = result.message;
     return;
   }
-  if (!result.ok) {
-    renderContractErrors(app, source, result.errors);
-    return;
-  }
-  new appModule.App(result.data);
+  const [start, out, [moon, earth, mars]] = result;
+  start.start(out, { moon, earth, mars });
 }
 
 void boot();
