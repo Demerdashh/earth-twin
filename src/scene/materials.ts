@@ -42,19 +42,21 @@ export function earthMaterial(day: Texture, night: Texture, water: Texture, ligh
         vec3 n = normalize(vNormalW);
         vec3 v = normalize(cameraPosition - vPosW);
         float ndl = dot(n, uLight);
-        float dayMix = smoothstep(-0.12, 0.22, ndl);
+        float dayMix = smoothstep(-0.35, 0.05, ndl);
         vec3 day = texture2D(uDay, vUv).rgb;
-        vec3 lit = day * (max(ndl, 0.0) * 1.25 + 0.025);
+        // Wrapped daylight: the face toward you is bright and clear, falling off softly to the limb.
+        float wrap = max(ndl * 0.7 + 0.3, 0.0);
+        vec3 lit = day * (wrap * 1.55 + 0.08) * 1.08;
         // City lights only: the Black Marble's bluish moonlit land is dropped, warm lights kept.
         vec3 nl = texture2D(uNight, vUv).rgb;
         float lights = smoothstep(0.1, 0.55, min(nl.r, nl.g) - nl.b * 0.25);
-        vec3 night = vec3(1.0, 0.78, 0.48) * lights * 1.5 * (1.0 - dayMix);
+        vec3 night = vec3(1.0, 0.78, 0.48) * lights * 1.2 * (1.0 - dayMix);
         float water = texture2D(uWater, vUv).r;
         vec3 h = normalize(uLight + v);
         float glint = pow(max(dot(n, h), 0.0), 320.0) * smoothstep(0.5, 0.9, water) * dayMix;
         float fres = pow(1.0 - max(dot(n, v), 0.0), 2.6);
-        vec3 haze = vec3(0.32, 0.55, 1.0) * fres * 0.5 * smoothstep(-0.25, 0.5, ndl);
-        vec3 ocean = vec3(0.012, 0.03, 0.07) * water * max(ndl, 0.0); // faint deep-water blue
+        vec3 haze = vec3(0.32, 0.55, 1.0) * fres * 0.55 * smoothstep(-0.25, 0.5, ndl);
+        vec3 ocean = vec3(0.02, 0.05, 0.11) * water * wrap; // deep-water blue
         gl_FragColor = vec4(lit + ocean + night + vec3(1.0, 0.96, 0.88) * glint * 0.14 + haze, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -182,42 +184,6 @@ export function regionMaterial(color: ColorRepresentation, pixelRatio: number, p
         float boost = uState > 1.5 ? 1.6 : (uState > 0.5 ? 1.3 : 1.0);
         float a = disc * (0.35 + 0.65 * ripple) * edge * boost * uOpacity * smoothstep(0.15, 0.45, vFacing);
         gl_FragColor = vec4(uColor * a, a);
-      }`,
-    transparent: true,
-    blending: AdditiveBlending,
-    depthWrite: false,
-  });
-}
-
-/** Link arc: colour runs from the source body to Earth, with light pulses flowing along it. */
-export function arcMaterial(from: ColorRepresentation, to: ColorRepresentation, phase: number): ShaderMaterial {
-  return new ShaderMaterial({
-    uniforms: {
-      uFrom: { value: new Color(from) },
-      uTo: { value: new Color(to) },
-      uTime: { value: 0 },
-      uAlpha: { value: 0 },
-      uPhase: { value: phase },
-    },
-    vertexShader: /* glsl */ `
-      attribute float aU;
-      varying float vU;
-      void main() {
-        vU = aU;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }`,
-    fragmentShader: /* glsl */ `
-      uniform vec3 uFrom;
-      uniform vec3 uTo;
-      uniform float uTime;
-      uniform float uAlpha;
-      uniform float uPhase;
-      varying float vU;
-      void main() {
-        float flow = pow(fract(vU - uTime * 0.22 + uPhase), 14.0) * 1.8;
-        float ends = smoothstep(0.0, 0.06, vU) * smoothstep(1.0, 0.94, vU);
-        float a = uAlpha * ends * (0.38 + flow);
-        gl_FragColor = vec4(mix(uFrom, uTo, vU) * a, a);
       }`,
     transparent: true,
     blending: AdditiveBlending,

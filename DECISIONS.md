@@ -29,3 +29,7 @@ One line per decision, added in the same commit as the change.
 | Sun 15:00 | Earth is the hero up front; Moon and Mars at real relative radii (0.273, 0.532) further out; all spin slowly | Earth is where the answers are; real proportions read as credible |
 | Sun 15:00 | Trips between bodies: turn, jump with star streaks and FOV widening, pause on the whole planet, dive | Makes the Earth to Mars/Moon link tangible in the demo |
 | Sun 15:00 | Pan, zoom and planet turning scale with altitude above the surface; turning glides (slerp) | Close-up motion was fast and jumpy |
+| Sun 17:00 | Home is Earth alone, centred; Moon and Mars placed hundreds of radii away and drawn only within range, so a destination appears as a speck and grows | One body at a time reads clearer; the trip itself shows the distance |
+| Sun 17:00 | Trips last 8-12 s (lift off, turn, long jump with even braking, beat on the whole planet, dive) | Previous jumps were too short to read in the video |
+| Sun 17:00 | Key light follows the camera (upper left, in front); Earth day lighting wrapped and brighter | Earth looked dark; every arrival now lands on the lit side |
+| Sun 17:00 | No arcs at all; hovering a region shows a small translucent name label | Links stay in the card; the globe stays clean |

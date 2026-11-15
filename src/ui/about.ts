@@ -45,7 +45,7 @@ export function renderAbout(root: HTMLElement, out: OutState, pending: TargetCon
       h(
         'p',
         { class: 'muted' },
-        'Bodies are not to scale. Drag a planet to turn it, drag space to move, scroll to zoom. Hover or open a dotted area to see the arcs to its analogs on the other bodies.',
+        'Sizes are to scale, distances are not. Drag a planet to turn it, drag space to move, scroll to zoom. Hover a dotted area to see its name; open it to see its analogs on the other bodies.',
       ),
       h('h3', {}, 'Limits'),
       h(

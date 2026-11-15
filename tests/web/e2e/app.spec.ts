@@ -11,6 +11,7 @@ interface Debug {
   camera: number[];
   travelling: boolean;
   warp: number;
+  shown: string[];
 }
 
 /** Rotation angle between two quaternions [x, y, z, w], radians. */
@@ -22,6 +23,7 @@ interface Hook {
   debug: () => Debug;
   orientation: (b: string) => number[];
   screenOf: (b: string) => { x: number; y: number };
+  facingRegions: () => { id: string; name: string; x: number; y: number }[];
 }
 
 const debug = (page: Page): Promise<Debug> =>
@@ -49,24 +51,41 @@ test('preloader plays first; nothing in the app starts until it is gone', async 
   await expect(page.locator('#space canvas')).toHaveCount(1);
 });
 
-test('each planet turns on its own; panning and zooming move only the view', async ({ page }) => {
+test('home is Earth alone, centred; hover names a region; each planet turns on its own', async ({ page }) => {
   await page.goto('/');
   await started(page);
   await settle(page, 800);
 
-  // Every planet spins slowly on its own axis; dragging Mars turns Mars far more than that drift,
-  // while the Moon and Earth only keep their slow spin.
-  const mars = await screenOf(page, 'mars');
+  // Home: only Earth is drawn, exactly in the middle of the screen.
+  const d0 = await debug(page);
+  expect(d0.view).toBe('system');
+  expect(d0.shown).toEqual(['earth']);
+  const size = page.viewportSize()!;
+  const earth = await screenOf(page, 'earth');
+  expect(Math.abs(earth.x - size.width / 2)).toBeLessThan(2);
+  expect(Math.abs(earth.y - size.height / 2)).toBeLessThan(2);
+
+  // Hovering a dotted area shows a small label with its name.
+  const facing = await page.evaluate(() => (window as unknown as { __analoglens: Hook }).__analoglens.facingRegions());
+  const spot = facing.find((r) => Math.hypot(r.x - earth.x, r.y - earth.y) < 200) ?? facing[0]!;
+  await page.mouse.move(spot.x, spot.y);
+  await expect(page.locator('#tip')).toHaveClass(/is-on/);
+  await expect(page.locator('#tip')).toContainText(spot.name);
+  await page.mouse.move(20, 20);
+  await expect(page.locator('#tip')).not.toHaveClass(/is-on/);
+
+  // Every planet spins slowly on its own axis; dragging Earth turns Earth far more than that drift,
+  // while the Moon and Mars only keep their slow spin.
   const before = await Promise.all(['moon', 'earth', 'mars'].map((b) => orientation(page, b)));
-  await page.mouse.move(mars.x, mars.y);
+  await page.mouse.move(earth.x - 160, earth.y);
   await page.mouse.down();
-  await page.mouse.move(mars.x + 140, mars.y + 30, { steps: 8 });
+  await page.mouse.move(earth.x + 160, earth.y + 30, { steps: 10 });
   await page.mouse.up();
   await settle(page, 300);
   const after = await Promise.all(['moon', 'earth', 'mars'].map((b) => orientation(page, b)));
   expect(angle(before[0]!, after[0]!)).toBeLessThan(0.15);
-  expect(angle(before[1]!, after[1]!)).toBeLessThan(0.15);
-  expect(angle(before[2]!, after[2]!)).toBeGreaterThan(0.6);
+  expect(angle(before[1]!, after[1]!)).toBeGreaterThan(0.6);
+  expect(angle(before[2]!, after[2]!)).toBeLessThan(0.15);
 
   // Drag empty space: the view pans sideways (not an orbit).
   const cam0 = (await debug(page)).camera;
@@ -80,19 +99,24 @@ test('each planet turns on its own; panning and zooming move only the view', asy
   expect(cam1[2]).toBeCloseTo(cam0[2]!, 1);
 });
 
-test('going to Mars is a jump across space: turn, star streaks, whole planet, then the place', async ({ page }) => {
+test('going to Mars is a long jump: Mars stays out of sight, then appears small and grows', async ({ page }) => {
   await page.goto('/');
   await started(page);
   await page.getByRole('button', { name: 'Mars', exact: true }).click();
   let peak = 0;
-  for (let i = 0; i < 40 && peak < 0.5; i++) {
-    peak = Math.max(peak, (await debug(page)).warp);
+  for (let i = 0; i < 80 && peak < 0.9; i++) {
+    const d = await debug(page);
+    peak = Math.max(peak, d.warp);
+    expect(d.shown).not.toContain('mars'); // not even during the turn or the first half of the jump
     await page.waitForTimeout(100);
   }
-  expect(peak).toBeGreaterThan(0.5);
+  expect(peak).toBeGreaterThan(0.9);
+  await expect.poll(async () => (await debug(page)).shown, { timeout: 15_000 }).toContain('mars');
   await expect.poll(async () => (await debug(page)).travelling, { timeout: 15_000 }).toBe(false);
-  expect((await debug(page)).body).toBe('mars');
-  expect((await debug(page)).warp).toBe(0);
+  const d = await debug(page);
+  expect(d.body).toBe('mars');
+  expect(d.shown).toEqual(['mars']);
+  expect(d.warp).toBe(0);
 });
 
 test('dive into a region, travel to its analog, then scroll back out freely', async ({ page }) => {
@@ -108,7 +132,7 @@ test('dive into a region, travel to its analog, then scroll back out freely', as
   expect((await debug(page)).regions).toBeGreaterThan(15);
 
   await page.getByRole('button', { name: 'Mars', exact: true }).click();
-  await expect.poll(async () => (await debug(page)).body).toBe('mars');
+  await expect.poll(async () => (await debug(page)).body, { timeout: 25_000 }).toBe('mars');
   expect((await debug(page)).view).toBe('body');
 
   await page.locator('#toggle-regions').click();
@@ -128,7 +152,7 @@ test('dive into a region, travel to its analog, then scroll back out freely', as
 
   // Travel along the link to Earth.
   await page.locator('#card .link-chip', { hasText: 'Kharga Depression' }).click();
-  await expect.poll(async () => (await debug(page)).body, { timeout: 15_000 }).toBe('earth');
+  await expect.poll(async () => (await debug(page)).body, { timeout: 30_000 }).toBe('earth');
   expect((await debug(page)).selected).toBe('egypt_kharga_depression');
   await expect(page.locator('#card-title')).toHaveText('Kharga Depression');
   await expect.poll(async () => (await debug(page)).patch, { timeout: 30_000 }).toMatch(/ready|failed/);
@@ -137,9 +161,10 @@ test('dive into a region, travel to its analog, then scroll back out freely', as
   for (let i = 0; i < 8; i++) await page.mouse.wheel(0, 400);
   await expect.poll(async () => (await debug(page)).view).not.toBe('region');
   await expect(page.locator('#card')).not.toHaveClass(/is-open/);
-  // Home: Earth in front, the Moon and Mars in the same sky.
+  // Home: Earth whole and centred.
   await page.getByRole('button', { name: 'All three bodies' }).click();
   await expect.poll(async () => (await debug(page)).view, { timeout: 15_000 }).toBe('system');
+  expect((await debug(page)).shown).toEqual(['earth']);
   await expect(page.locator('[data-body="earth"]')).toHaveAttribute('aria-pressed', 'false');
 
   // The guided tour (for the video) shows one caption at a time and stops on any input.

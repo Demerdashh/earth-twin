@@ -62,11 +62,48 @@ export class App {
     this.refreshGraph();
     this.buildChrome();
     this.bindKeys();
+    this.bindHover();
     (window as unknown as { __analoglens: unknown }).__analoglens = {
       debug: () => this.space.debug(),
       orientation: (b: Body) => this.space.orientation(b),
       screenOf: (b: Body) => this.space.screenOf(b),
+      facingRegions: () => this.space.facingRegions(),
     };
+  }
+
+  /** Hovering a dotted area highlights it and shows a small label with its name. */
+  private bindHover(): void {
+    const canvas = this.space.canvas;
+    const tip = $('#tip');
+    let frame = 0;
+    const follow = (): void => {
+      const id = this.space.hovered;
+      const s = id && !this.space.travelling ? this.space.regionScreen(id) : null;
+      if (!id || !s?.facing) return hide();
+      tip.style.left = `${s.x}px`;
+      tip.style.top = `${s.y}px`;
+      frame = requestAnimationFrame(follow); // stays pinned while the planet spins
+    };
+    const hide = (): void => {
+      cancelAnimationFrame(frame);
+      this.space.setHovered(null);
+      tip.classList.remove('is-on');
+      canvas.style.cursor = '';
+    };
+    canvas.addEventListener('pointermove', (e) => {
+      if (e.buttons || this.space.travelling) return hide();
+      const region = this.space.pick(e.clientX, e.clientY)?.region ?? null;
+      canvas.style.cursor = region ? 'pointer' : '';
+      if (!region) return hide();
+      if (region.id === this.space.hovered) return;
+      this.space.setHovered(region.id);
+      tip.replaceChildren(region.name, h('span', { class: 'tip-body' }, BODY_LABEL[region.body]));
+      tip.classList.add('is-on');
+      cancelAnimationFrame(frame);
+      follow();
+    });
+    canvas.addEventListener('pointerleave', hide);
+    canvas.addEventListener('pointerdown', hide);
   }
 
   /* ------------------------------------------------------------ chrome */
@@ -229,7 +266,7 @@ export class App {
   }
 
   private refreshGraph(): void {
-    this.space.setGraph([...this.base.regions, ...this.ranked.regions], [...this.base.links, ...this.ranked.links]);
+    this.space.setRegions([...this.base.regions, ...this.ranked.regions]);
   }
 
   private renderPanel(region: Region): void {

@@ -391,18 +391,32 @@ button {
   cursor: pointer;
 }
 
+/* Hover label: a small translucent pill just above the region's centre. */
 .tip {
   position: fixed;
   left: 0;
   top: 0;
   z-index: 20;
   pointer-events: none;
-  padding: 7px 12px;
-  border-radius: 10px;
-  background: var(--glass-strong);
-  border: 1px solid var(--line);
-  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgb(17 18 38 / 0.42);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  backdrop-filter: blur(6px);
+  color: rgb(255 255 255 / 0.92);
+  font-size: 12px;
+  letter-spacing: 0.02em;
   white-space: nowrap;
+  transform: translate(-50%, calc(-100% - 14px));
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+.tip.is-on {
+  opacity: 1;
+}
+.tip .tip-body {
+  color: var(--muted);
+  margin-left: 6px;
 }
 
 /* ---------------------------------------------------------------- card */
