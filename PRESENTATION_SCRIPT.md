@@ -34,13 +34,13 @@ so a ridge pointing north still matches one pointing east.
 Each mission task weights those dimensions differently, and we combine them with a geometric mean,
 so one bad dimension drags the whole score down. Missing data never counts as a match.
 Our first target is Medusae Fossae, the wind-carved yardangs of Mars. We scored 5,140 Earth
-tiles across North Africa and Arabia, for two tasks: wind-erosion science and rover mobility.
+tiles across northeast Africa and western Arabia, for two tasks: wind-erosion science and rover mobility.
 
 ### 1:45 to 3:05 · What we found (B, then A)
 **[SITE: back to Earth, ranked tiles light up; choose Wind-erosion science, open tile #1]**
 
 **B:** For wind-erosion science, the number-one match out of 5,140 tiles is in Egypt's Western
-Desert, about 130 kilometres east of the Gilf Kebir plateau. It scores 0.90. Its wind-aligned
+Desert, about 160 kilometres east of the centre of the Gilf Kebir plateau. It scores 0.90. Its wind-aligned
 texture reads 0.135; Medusae Fossae reads 0.152. Four of the top ten wind-erosion tiles are in
 Egypt, and one of them, ranked 13th, sits about 120 kilometres from the Kharga Depression, whose
 yardangs the USGS compared with Mars in the 1980s.
@@ -107,9 +107,9 @@ construction as tasks. AnalogLens doesn't just tell you that a place looks like 
   version. Check the exact wording against the source in the prep kit.
 - **Place names:** the rover #1 tile (NE02820) is at 23.22°N, 15.15°E, the wind #1 tile (NE02862) at
   23.22°N, 27.46°E, and the wind #13 tile (NE03516) at 25.11°N, 29.43°E. Check all three on a map
-  before saying "Niger–Libya border", "130 km east of Gilf Kebir" and "120 km from Kharga".
+  before saying "Niger–Libya border", "160 km east of the centre of Gilf Kebir" and "120 km from Kharga".
 - **Kharga and the USGS:** DECISIONS.md cites Breed et al. 1984. Check the year and the wording.
-- **Tile extent:** check that "North Africa and Arabia" matches the bbox you cut.
+- **Tile extent:** confirmed from the notebook: 15–30°N, 15–45°E (northeast Africa and western Arabia).
 - **Configured targets:** the Moon and the extra Mars targets are in `config/`, but no pipeline run
   has used them yet. Say "set up", never "results".
 
