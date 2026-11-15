@@ -1,0 +1,89 @@
+{
+ "tile_id": "NE03156",
+ "target": "medusae_fossae",
+ "target_label": "Medusae Fossae Formation (yardangs)",
+ "task": "rover_mobility",
+ "task_label": "Rover mobility",
+ "score": 0.8307,
+ "strong_for": [
+  "Slope",
+  "Roughness",
+  "Relief"
+ ],
+ "bars": [
+  {
+   "dimension": "terrain_shape",
+   "label": "Terrain shape",
+   "weight": 0.3,
+   "score": 0.643,
+   "status": "partial"
+  },
+  {
+   "dimension": "slope",
+   "label": "Slope",
+   "weight": 0.25,
+   "score": 0.999,
+   "status": "strong",
+   "earth_value": 0.955,
+   "target_value": 1.167,
+   "unit": "°"
+  },
+  {
+   "dimension": "roughness",
+   "label": "Roughness",
+   "weight": 0.2,
+   "score": 0.944,
+   "status": "strong",
+   "earth_value": 8.143,
+   "target_value": 9.982,
+   "unit": "m"
+  },
+  {
+   "dimension": "relief",
+   "label": "Relief",
+   "weight": 0.1,
+   "score": 0.875,
+   "status": "strong",
+   "earth_value": 178.281,
+   "target_value": 256.085,
+   "unit": "m"
+  }
+ ],
+ "breaks": [
+  {
+   "dimension": "gravity",
+   "kind": "fixed",
+   "text": "About 0.38 g on Mars versus 1 g on Earth"
+  },
+  {
+   "dimension": "atmosphere",
+   "kind": "fixed",
+   "text": "About 1% as dense as Earth's (NASA JPL), mostly carbon dioxide"
+  },
+  {
+   "dimension": "radiation",
+   "kind": "fixed",
+   "text": "Thin air and no global magnetic field to shield the surface"
+  },
+  {
+   "dimension": "water",
+   "kind": "fixed",
+   "text": "Liquid water is not stable on the surface today; Earth analogs always hold some moisture"
+  }
+ ],
+ "tests": [
+  "Drive a prototype rover across slopes like the target's and log wheel slip",
+  "Train hazard detection on crater rims and blocky ground",
+  "Plan traverses using only orbital-resolution maps, then check them on the ground"
+ ],
+ "nearest_known": {
+  "name": "Lut Desert yardangs, Iran",
+  "km": 2608.8,
+  "novel": true
+ },
+ "images": {
+  "earth": "/img/earth_NE03156.png",
+  "target": "/img/target_medusae_fossae.png"
+ },
+ "synthetic": false
+}

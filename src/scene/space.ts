@@ -38,7 +38,7 @@ import { IMAGERY, type Body } from '../data/config';
 import type { Region, RegionKind } from '../data/regions';
 import { angularDistanceDeg, latLonToVec3, vec3ToLatLon } from './geo';
 import { atmosphereMaterial, earthMaterial, num, regionMaterial, starMaterial } from './materials';
-import { RegionPatch } from './patch';
+import { RegionDetail } from './patch';
 import { Warp } from './warp';
 
 export type View = 'system' | 'body' | 'region';
@@ -140,7 +140,9 @@ export class Space {
   private regions = new Map<string, RegionNode>();
   private readonly stars: Points<BufferGeometry, ShaderMaterial>;
   private readonly warp = new Warp();
-  private readonly patch = new RegionPatch();
+  private readonly detail = new RegionDetail();
+  private still = 0; // seconds the view has rested (close-up imagery loads once it rests)
+  private readonly lastCam = new Vector3();
   private readonly raycaster = new Raycaster();
   private readonly camGoal = HOME_POS.clone();
   private readonly lightDir = new Vector3();
@@ -313,7 +315,6 @@ export class Space {
 
   setSelected(id: string | null): void {
     this.selected = id;
-    if (!id) this.patch.clear();
     this.refreshStates();
   }
 
@@ -645,7 +646,6 @@ export class Space {
     const body = region.body;
     const c = BODY_CENTER[body];
     const r = BODY_RADIUS[body];
-    this.patch.clear();
     const { legs, fwd, look } = this.approach(body);
     const alt = REGION_ALTITUDE[region.kind === 'ranked' ? 'ranked' : body];
     const close = c.clone().addScaledVector(fwd, -r * (1 + alt));
@@ -659,10 +659,57 @@ export class Space {
     // Already at this planet: turn it while gliding down.
     if (legs.length === 1) legs[0] = { ...dive, dur: 2.2 };
     else legs.push(dive);
-    await this.trip(legs);
-    if (this.selected !== region.id) return;
-    // Cover the whole close-up view (ground half-width is about altitude x 45 degrees) with margin.
-    void this.patch.show(this.bodies[body].pivot, r, IMAGERY[body].color, region.lat, region.lon, alt * 62);
+    await this.trip(legs); // the close-up imagery loads as soon as the view rests (updateDetail)
+  }
+
+  /**
+   * Close-up imagery follows the view, not the selection: once the camera has rested near a
+   * surface for a moment, the tiles for exactly what is on screen load at screen resolution.
+   */
+  private updateDetail(dt: number, near: { body: Body; alt: number }): void {
+    const node = this.bodies[near.body];
+    const R = node.radius;
+    if (near.alt > R * 2.2) {
+      this.detail.clear();
+      this.still = 0;
+      return;
+    }
+    const moved =
+      this.camera.position.distanceTo(this.lastCam) > this.unitsPerPixel(near.alt) * 0.5 ||
+      node.pivot.quaternion.angleTo(node.goal) > 1e-3;
+    this.lastCam.copy(this.camera.position);
+    this.still = moved || this.legs.length ? 0 : this.still + dt;
+    if (this.still < 0.2 || near.alt > R * 2) return;
+
+    // Ground point at the centre of the screen (or the nearest point of the limb).
+    const c = BODY_CENTER[near.body];
+    const o = this.camera.position;
+    const dir = this.forward();
+    const oc = o.clone().sub(c);
+    const b = oc.dot(dir);
+    const disc = b * b - (oc.lengthSq() - R * R);
+    const hit =
+      disc >= 0
+        ? o.clone().addScaledVector(dir, -b - Math.sqrt(disc))
+        : c.clone().add(o.clone().addScaledVector(dir, Math.max(0, -b)).sub(c).setLength(R));
+    const { lat, lon } = vec3ToLatLon(node.pivot.worldToLocal(hit.clone()));
+    const tanHalf = Math.tan((this.camera.fov * Math.PI) / 360);
+    const visibleHalf = Math.min(
+      70,
+      (Math.atan((o.distanceTo(hit) * tanHalf * Math.max(1, this.camera.aspect)) / R) * 180) / Math.PI,
+    );
+    const needPxPerDeg = this.renderer.domElement.width / (2 * visibleHalf);
+    this.detail.request(
+      node.pivot,
+      R,
+      IMAGERY[near.body].color,
+      lat,
+      lon,
+      visibleHalf,
+      needPxPerDeg,
+      this.lightDir,
+      near.body === 'earth',
+    );
   }
 
   /* ------------------------------------------------------------ frame */
@@ -771,7 +818,8 @@ export class Space {
     this.updateView();
     num(this.stars.material, 'uTime').value = this.time;
     for (const n of this.regions.values()) num(n.points.material, 'uTime').value = this.time;
-    this.patch.update(dt);
+    this.updateDetail(dt, camNear);
+    this.detail.update(dt);
     this.renderer.render(this.scene, this.camera);
   };
 
@@ -786,14 +834,15 @@ export class Space {
     const toBody = c.clone().sub(cam).normalize();
     let view: View = 'body';
     // Home: Earth whole and centred.
-    if (body === 'earth' && near.rel > 3.8 && near.rel < 7 && fwd.dot(toBody) > 0.995) view = 'system';
+    if (body === 'earth' && near.rel > 3.5 && near.rel < 8 && fwd.dot(toBody) > 0.99) view = 'system';
     const sel = this.selected ? this.regions.get(this.selected) : undefined;
     if (sel && sel.region.body === body) {
       const node = this.bodies[body];
       const p = node.pivot.localToWorld(tmp.copy(sel.local)).clone();
       const facing = p.clone().sub(c).normalize().dot(cam.clone().sub(c).normalize());
-      const inView = p.clone().sub(cam).normalize().dot(fwd) > 0.86;
-      if (near.alt < node.radius * 1.15 && (node.facing || (facing > 0.6 && inView))) view = 'region';
+      // Generous on purpose: small turns and pans around the place keep it open.
+      const inView = p.clone().sub(cam).normalize().dot(fwd) > 0.6;
+      if (near.alt < node.radius * 1.3 && (node.facing || (facing > 0.35 && inView))) view = 'region';
     }
     if (view !== this.view || body !== this.focusBody) {
       this.view = view;
@@ -824,8 +873,8 @@ export class Space {
       selected: this.selected,
       regions: this.regions.size,
       visible: this.regionsVisible,
-      patch: this.patch.state,
-      tiles: this.patch.tiles,
+      patch: this.detail.state,
+      tiles: this.detail.tiles,
       camera: this.camera.position.toArray().map((v) => Math.round(v * 100) / 100),
       travelling: this.travelling,
       warp: Math.round(this.warpLevel * 100) / 100,

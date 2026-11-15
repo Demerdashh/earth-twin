@@ -1,0 +1,762 @@
+{
+ "target": "medusae_fossae",
+ "task": "wind_erosion_science",
+ "embedder": "dinov2_vits14",
+ "synthetic": false,
+ "dimension_modes": {
+  "terrain_shape": "absolute",
+  "linearity": "absolute"
+ },
+ "results": [
+  {
+   "rank": 1,
+   "tile_id": "NE02862",
+   "lat": 23.2196,
+   "lon": 27.463,
+   "score": 0.8959,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.851,
+    "linearity": 0.994
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 3209.0
+  },
+  {
+   "rank": 2,
+   "tile_id": "NE02820",
+   "lat": 23.2196,
+   "lon": 15.1466,
+   "score": 0.874,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.881,
+    "linearity": 0.86
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 2619.7
+  },
+  {
+   "rank": 3,
+   "tile_id": "NE02861",
+   "lat": 23.2196,
+   "lon": 27.1697,
+   "score": 0.831,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.765,
+    "linearity": 0.98
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 3236.9
+  },
+  {
+   "rank": 4,
+   "tile_id": "NE04784",
+   "lat": 28.8789,
+   "lon": 19.7704,
+   "score": 0.821,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.745,
+    "linearity": 0.997
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 2625.0
+  },
+  {
+   "rank": 5,
+   "tile_id": "NE01866",
+   "lat": 20.2551,
+   "lon": 42.4331,
+   "score": 0.8206,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.776,
+    "linearity": 0.917
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 1999.0
+  },
+  {
+   "rank": 6,
+   "tile_id": "NE01268",
+   "lat": 18.6382,
+   "lon": 26.803,
+   "score": 0.8121,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.749,
+    "linearity": 0.955
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 3485.0
+  },
+  {
+   "rank": 7,
+   "tile_id": "NE03021",
+   "lat": 23.7585,
+   "lon": 20.4473,
+   "score": 0.8102,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.734,
+    "linearity": 0.987
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 2994.4
+  },
+  {
+   "rank": 8,
+   "tile_id": "NE02508",
+   "lat": 22.1416,
+   "lon": 32.3115,
+   "score": 0.8007,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.717,
+    "linearity": 0.999
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 2797.4
+  },
+  {
+   "rank": 9,
+   "tile_id": "NE03900",
+   "lat": 26.184,
+   "lon": 33.7694,
+   "score": 0.7968,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.724,
+    "linearity": 0.966
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 2499.4
+  },
+  {
+   "rank": 10,
+   "tile_id": "NE01372",
+   "lat": 18.9077,
+   "lon": 29.9554,
+   "score": 0.7936,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.722,
+    "linearity": 0.958
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 3179.6
+  },
+  {
+   "rank": 11,
+   "tile_id": "NE03497",
+   "lat": 25.106,
+   "lon": 23.7795,
+   "score": 0.7895,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.708,
+    "linearity": 0.983
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 3182.2
+  },
+  {
+   "rank": 12,
+   "tile_id": "NE01370",
+   "lat": 18.9077,
+   "lon": 29.3856,
+   "score": 0.788,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.733,
+    "linearity": 0.912
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 3231.9
+  },
+  {
+   "rank": 13,
+   "tile_id": "NE03516",
+   "lat": 25.106,
+   "lon": 29.4341,
+   "score": 0.7831,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.782,
+    "linearity": 0.786
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 2949.9
+  },
+  {
+   "rank": 14,
+   "tile_id": "NE04804",
+   "lat": 28.8789,
+   "lon": 25.9257,
+   "score": 0.7778,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.69,
+    "linearity": 0.989
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 3155.9
+  },
+  {
+   "rank": 15,
+   "tile_id": "NE00095",
+   "lat": 15.1348,
+   "lon": 44.4532,
+   "score": 0.7773,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.717,
+    "linearity": 0.914
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 2248.0
+  },
+  {
+   "rank": 16,
+   "tile_id": "NE03320",
+   "lat": 24.567,
+   "lon": 26.7045,
+   "score": 0.7731,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.681,
+    "linearity": 0.996
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 3230.1
+  },
+  {
+   "rank": 17,
+   "tile_id": "NE02218",
+   "lat": 21.3331,
+   "lon": 31.3464,
+   "score": 0.771,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.681,
+    "linearity": 0.989
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 2925.9
+  },
+  {
+   "rank": 18,
+   "tile_id": "NE01242",
+   "lat": 18.6382,
+   "lon": 19.4083,
+   "score": 0.7624,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.747,
+    "linearity": 0.795
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 3292.1
+  },
+  {
+   "rank": 19,
+   "tile_id": "NE01150",
+   "lat": 18.3687,
+   "lon": 19.6854,
+   "score": 0.7617,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.691,
+    "linearity": 0.926
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 3334.0
+  },
+  {
+   "rank": 20,
+   "tile_id": "NE00966",
+   "lat": 17.8297,
+   "lon": 21.0864,
+   "score": 0.7606,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.725,
+    "linearity": 0.838
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 3480.7
+  },
+  {
+   "rank": 21,
+   "tile_id": "NE03327",
+   "lat": 24.567,
+   "lon": 28.7787,
+   "score": 0.756,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.684,
+    "linearity": 0.923
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 3031.7
+  },
+  {
+   "rank": 22,
+   "tile_id": "NE03065",
+   "lat": 23.7585,
+   "lon": 33.403,
+   "score": 0.7559,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.696,
+    "linearity": 0.892
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 2623.5
+  },
+  {
+   "rank": 23,
+   "tile_id": "NE03020",
+   "lat": 23.7585,
+   "lon": 20.1528,
+   "score": 0.7509,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.833,
+    "linearity": 0.61
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 2970.7
+  },
+  {
+   "rank": 24,
+   "tile_id": "NE04191",
+   "lat": 26.9925,
+   "lon": 40.5561,
+   "score": 0.7507,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.677,
+    "linearity": 0.923
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 1826.7
+  },
+  {
+   "rank": 25,
+   "tile_id": "NE02296",
+   "lat": 21.6026,
+   "lon": 26.1593,
+   "score": 0.7488,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.648,
+    "linearity": 0.999
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 3401.5
+  },
+  {
+   "rank": 26,
+   "tile_id": "NE02544",
+   "lat": 22.4111,
+   "lon": 15.1458,
+   "score": 0.7399,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.646,
+    "linearity": 0.971
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 2681.7
+  },
+  {
+   "rank": 27,
+   "tile_id": "NE04560",
+   "lat": 28.0704,
+   "lon": 39.8917,
+   "score": 0.7385,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.635,
+    "linearity": 1.0
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 1860.2
+  },
+  {
+   "rank": 28,
+   "tile_id": "NE02171",
+   "lat": 21.3331,
+   "lon": 17.7485,
+   "score": 0.7384,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.635,
+    "linearity": 0.998
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 2958.5
+  },
+  {
+   "rank": 29,
+   "tile_id": "NE03624",
+   "lat": 25.3755,
+   "lon": 34.2385,
+   "score": 0.7384,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.635,
+    "linearity": 0.998
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 2481.9
+  },
+  {
+   "rank": 30,
+   "tile_id": "NE01059",
+   "lat": 18.0992,
+   "lon": 20.5287,
+   "score": 0.7366,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.642,
+    "linearity": 0.97
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 3417.9
+  },
+  {
+   "rank": 31,
+   "tile_id": "NE03134",
+   "lat": 24.028,
+   "lon": 26.95,
+   "score": 0.7357,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.633,
+    "linearity": 0.993
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 3226.5
+  },
+  {
+   "rank": 32,
+   "tile_id": "NE03512",
+   "lat": 25.106,
+   "lon": 28.2437,
+   "score": 0.731,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.625,
+    "linearity": 0.999
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 3063.8
+  },
+  {
+   "rank": 33,
+   "tile_id": "NE03494",
+   "lat": 25.106,
+   "lon": 22.8867,
+   "score": 0.731,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.636,
+    "linearity": 0.966
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 3107.4
+  },
+  {
+   "rank": 34,
+   "tile_id": "NE03588",
+   "lat": 25.3755,
+   "lon": 23.5007,
+   "score": 0.7286,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.628,
+    "linearity": 0.979
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 3142.3
+  },
+  {
+   "rank": 35,
+   "tile_id": "NE02163",
+   "lat": 21.3331,
+   "lon": 15.434,
+   "score": 0.7267,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.635,
+    "linearity": 0.951
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 2787.5
+  },
+  {
+   "rank": 36,
+   "tile_id": "NE03493",
+   "lat": 25.106,
+   "lon": 22.5891,
+   "score": 0.7233,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.618,
+    "linearity": 0.992
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 3082.6
+  },
+  {
+   "rank": 37,
+   "tile_id": "NE01371",
+   "lat": 18.9077,
+   "lon": 29.6705,
+   "score": 0.7198,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.635,
+    "linearity": 0.924
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 3205.8
+  },
+  {
+   "rank": 38,
+   "tile_id": "NE04889",
+   "lat": 29.1484,
+   "lon": 22.56,
+   "score": 0.7193,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.624,
+    "linearity": 0.956
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 2850.5
+  },
+  {
+   "rank": 39,
+   "tile_id": "NE04656",
+   "lat": 28.3399,
+   "lon": 39.9546,
+   "score": 0.7179,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.663,
+    "linearity": 0.84
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 1847.9
+  },
+  {
+   "rank": 40,
+   "tile_id": "NE02553",
+   "lat": 22.4111,
+   "lon": 17.7693,
+   "score": 0.7073,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.603,
+    "linearity": 0.974
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 2878.9
+  },
+  {
+   "rank": 41,
+   "tile_id": "NE02701",
+   "lat": 22.6806,
+   "lon": 33.8392,
+   "score": 0.7036,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.636,
+    "linearity": 0.86
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 2629.7
+  },
+  {
+   "rank": 42,
+   "tile_id": "NE01278",
+   "lat": 18.6382,
+   "lon": 29.6471,
+   "score": 0.6984,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.588,
+    "linearity": 0.987
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 3222.6
+  },
+  {
+   "rank": 43,
+   "tile_id": "NE03420",
+   "lat": 24.8365,
+   "lon": 28.5116,
+   "score": 0.6965,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.686,
+    "linearity": 0.718
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 3047.6
+  },
+  {
+   "rank": 44,
+   "tile_id": "NE04844",
+   "lat": 28.8789,
+   "lon": 38.5441,
+   "score": 0.6964,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.582,
+    "linearity": 0.996
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 1971.9
+  },
+  {
+   "rank": 45,
+   "tile_id": "NE00689",
+   "lat": 17.0212,
+   "lon": 22.1869,
+   "score": 0.6948,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.602,
+    "linearity": 0.927
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 3626.8
+  },
+  {
+   "rank": 46,
+   "tile_id": "NE03135",
+   "lat": 24.028,
+   "lon": 27.245,
+   "score": 0.6884,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.572,
+    "linearity": 0.996
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 3198.3
+  },
+  {
+   "rank": 47,
+   "tile_id": "NE02228",
+   "lat": 21.3331,
+   "lon": 34.2396,
+   "score": 0.6881,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.639,
+    "linearity": 0.799
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 2657.9
+  },
+  {
+   "rank": 48,
+   "tile_id": "NE04987",
+   "lat": 29.4179,
+   "lon": 25.3644,
+   "score": 0.6855,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.578,
+    "linearity": 0.964
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 3080.5
+  },
+  {
+   "rank": 49,
+   "tile_id": "NE01334",
+   "lat": 18.9077,
+   "lon": 19.1305,
+   "score": 0.6851,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.567,
+    "linearity": 1.0
+   },
+   "novel": true,
+   "nearest_known": "Rio Tinto, Spain",
+   "nearest_known_km": 3250.3
+  },
+  {
+   "rank": 50,
+   "tile_id": "NE04561",
+   "lat": 28.0704,
+   "lon": 40.1972,
+   "score": 0.6815,
+   "coverage": 1.0,
+   "dims": {
+    "terrain_shape": 0.654,
+    "linearity": 0.74
+   },
+   "novel": true,
+   "nearest_known": "Lut Desert yardangs, Iran",
+   "nearest_known_km": 1831.0
+  }
+ ]
+}

@@ -15,7 +15,7 @@ vid-reference/
 # Pipeline: raw inputs and run output (publish real output with `npm run data:publish`)
 out/
 out_*/
-data/
+/data/
 *.npz
 *.img
 *.IMG

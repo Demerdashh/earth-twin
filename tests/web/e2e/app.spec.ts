@@ -120,14 +120,16 @@ test('going to Mars is a long jump: Mars stays out of sight, then appears small 
 });
 
 test('dive into a region, travel to its analog, then scroll back out freely', async ({ page }) => {
+  test.setTimeout(240_000); // five trips between bodies at real speed
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await started(page);
 
-  // No pipeline output is published: the page says so (About) and shows no score.
+  // The real pipeline output is published (public/data): About states its provenance.
   await page.locator('#about-open').click();
-  await expect(page.locator('#about')).toContainText('not published yet');
+  await expect(page.locator('#about')).toContainText('Real pipeline output, generated 2026-11-15');
+  await expect(page.locator('#about')).toContainText('5,140 Earth tiles');
   await page.keyboard.press('Escape');
   expect((await debug(page)).regions).toBeGreaterThan(15);
 
@@ -146,9 +148,38 @@ test('dive into a region, travel to its analog, then scroll back out freely', as
   await expect.poll(async () => (await debug(page)).view).toBe('region');
   await expect(page.locator('#card')).toHaveClass(/is-open/);
   await expect(page.locator('#card-title')).toContainText('Medusae Fossae');
-  await expect(page.locator('#card')).toContainText(
-    'Earth ranking appears here once the real pipeline output is published',
-  );
+  // The real ranking: best Earth tiles for the first task, from rank/*.json.
+  await expect(page.locator('#card .top li')).toHaveCount(5);
+  expect((await debug(page)).regions).toBeGreaterThan(40); // + the top 50 ranked tiles on Earth
+
+  // Close-up imagery for the opened place loads and stays through small moves.
+  await expect.poll(async () => (await debug(page)).patch, { timeout: 30_000 }).toMatch(/ready|failed/);
+  await page.mouse.move(700, 450);
+  await page.mouse.down();
+  await page.mouse.move(760, 430, { steps: 6 });
+  await page.mouse.up();
+  await settle(page, 600);
+  expect((await debug(page)).view).toBe('region');
+  await expect.poll(async () => (await debug(page)).patch, { timeout: 30_000 }).toMatch(/ready|failed/);
+
+  // The other task loads its own ranking.
+  await page.locator('#card .task', { hasText: 'Rover mobility' }).click();
+  await expect(page.locator('#card .task[aria-pressed="true"]')).toHaveText('Rover mobility');
+  await expect(page.locator('#card .top li')).toHaveCount(5);
+
+  // A ranked tile: Earth trip, score and the fingerprint card with real relief images.
+  await page.locator('#card .top li button').first().click();
+  await expect.poll(async () => (await debug(page)).body, { timeout: 30_000 }).toBe('earth');
+  await expect(page.locator('#card .score-line .big')).toHaveText(/^\d{1,3}$/);
+  await expect(page.locator('#card .bars li').first()).toBeVisible();
+  await expect(page.locator('#card .pair img')).toHaveCount(2);
+  for (const img of await page.locator('#card .pair img').all())
+    await expect.poll(() => img.evaluate((el) => (el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+
+  // Back to the target, then on to its Egypt analog.
+  await page.locator('#card .link-chip.back').click();
+  await expect.poll(async () => (await debug(page)).body, { timeout: 30_000 }).toBe('mars');
+  await expect(page.locator('#card-title')).toContainText('Medusae Fossae');
 
   // Travel along the link to Earth.
   await page.locator('#card .link-chip', { hasText: 'Kharga Depression' }).click();

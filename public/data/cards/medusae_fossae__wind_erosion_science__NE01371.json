@@ -1,0 +1,67 @@
+{
+ "tile_id": "NE01371",
+ "target": "medusae_fossae",
+ "target_label": "Medusae Fossae Formation (yardangs)",
+ "task": "wind_erosion_science",
+ "task_label": "Wind-erosion science",
+ "score": 0.7198,
+ "strong_for": [
+  "Wind-aligned texture"
+ ],
+ "bars": [
+  {
+   "dimension": "terrain_shape",
+   "label": "Terrain shape",
+   "weight": 0.4,
+   "score": 0.635,
+   "status": "partial"
+  },
+  {
+   "dimension": "linearity",
+   "label": "Wind-aligned texture",
+   "weight": 0.2,
+   "score": 0.924,
+   "status": "strong",
+   "earth_value": 0.211,
+   "target_value": 0.152,
+   "unit": ""
+  }
+ ],
+ "breaks": [
+  {
+   "dimension": "gravity",
+   "kind": "fixed",
+   "text": "About 0.38 g on Mars versus 1 g on Earth"
+  },
+  {
+   "dimension": "atmosphere",
+   "kind": "fixed",
+   "text": "About 1% as dense as Earth's (NASA JPL), mostly carbon dioxide"
+  },
+  {
+   "dimension": "radiation",
+   "kind": "fixed",
+   "text": "Thin air and no global magnetic field to shield the surface"
+  },
+  {
+   "dimension": "water",
+   "kind": "fixed",
+   "text": "Liquid water is not stable on the surface today; Earth analogs always hold some moisture"
+  }
+ ],
+ "tests": [
+  "Measure yardang shapes and erosion rates and compare them with Martian ones",
+  "Calibrate rover cameras on wind-carved layered rock",
+  "Compare dune and ripple migration with orbital change detection"
+ ],
+ "nearest_known": {
+  "name": "Lut Desert yardangs, Iran",
+  "km": 3205.8,
+  "novel": true
+ },
+ "images": {
+  "earth": "/img/earth_NE01371.png",
+  "target": "/img/target_medusae_fossae.png"
+ },
+ "synthetic": false
+}

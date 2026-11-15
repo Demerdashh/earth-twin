@@ -1,0 +1,104 @@
+{
+ "tasks": {
+  "rover_mobility": {
+   "label": "Rover mobility",
+   "weights": {
+    "terrain_shape": 0.3,
+    "slope": 0.25,
+    "roughness": 0.2,
+    "relief": 0.1,
+    "aridity": 0.15
+   },
+   "tests": [
+    "Drive a prototype rover across slopes like the target's and log wheel slip",
+    "Train hazard detection on crater rims and blocky ground",
+    "Plan traverses using only orbital-resolution maps, then check them on the ground"
+   ]
+  },
+  "ice_prospecting": {
+   "label": "Ice prospecting",
+   "weights": {
+    "ground_ice": 0.35,
+    "cold": 0.3,
+    "aridity": 0.15,
+    "terrain_shape": 0.2
+   },
+   "tests": [
+    "Field-test ground-penetrating radar over buried ice",
+    "Rehearse drilling and sample handling in frozen ground",
+    "Check thermal models of where ice survives near the surface"
+   ]
+  },
+  "base_construction": {
+   "label": "Base construction",
+   "weights": {
+    "slope": 0.3,
+    "relief": 0.15,
+    "thermal_range": 0.2,
+    "aridity": 0.15,
+    "terrain_shape": 0.2
+   },
+   "tests": [
+    "Level and stabilise a landing pad on similar slopes",
+    "Cure construction material made from local loose rock and dust",
+    "Load-test structures through large day-night temperature swings"
+   ]
+  },
+  "wind_erosion_science": {
+   "label": "Wind-erosion science",
+   "weights": {
+    "terrain_shape": 0.4,
+    "linearity": 0.2,
+    "dust": 0.15,
+    "aridity": 0.25
+   },
+   "tests": [
+    "Measure yardang shapes and erosion rates and compare them with Martian ones",
+    "Calibrate rover cameras on wind-carved layered rock",
+    "Compare dune and ripple migration with orbital change detection"
+   ]
+  }
+ },
+ "dimensions": {
+  "terrain_shape": {
+   "label": "Terrain shape",
+   "unit": ""
+  },
+  "slope": {
+   "label": "Slope",
+   "unit": "°"
+  },
+  "roughness": {
+   "label": "Roughness",
+   "unit": "m"
+  },
+  "relief": {
+   "label": "Relief",
+   "unit": "m"
+  },
+  "linearity": {
+   "label": "Wind-aligned texture",
+   "unit": ""
+  },
+  "thermal_range": {
+   "label": "Temperature swing",
+   "unit": "°C"
+  },
+  "cold": {
+   "label": "Cold",
+   "unit": "°C"
+  },
+  "aridity": {
+   "label": "Dryness (no vegetation)",
+   "unit": "NDVI"
+  },
+  "dust": {
+   "label": "Dust",
+   "unit": "AOD"
+  },
+  "ground_ice": {
+   "label": "Ground ice",
+   "unit": ""
+  }
+ }
+}

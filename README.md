@@ -10,8 +10,10 @@ images of Earth, Moon, and Mars) is one dimension among several, never the whole
 > **Read this first**
 > * The site shows **real data only**. `scripts/demo_synthetic.py` still exists to test the pipeline,
 >   but its output carries `"synthetic": true` and `npm run data:publish` and the site both refuse it.
->   Until the real `out/` is published, the site shows targets and documented analog sites from
->   `config/` and says "Awaiting pipeline output" instead of showing any score.
+> * Published now: the team's final run (`final_out_dino.zip` in the team repo, generated
+>   2026-11-15): Medusae Fossae x {wind-erosion science, rover mobility}, 5,140 Earth tiles at
+>   463 m, DINOv2 ViT-S/14, top 50 cards per task. To update it, unzip a new run into `out/` and run
+>   `npm run data:publish`; `public/data/` is committed so Vercel ships it.
 > * Values marked **VERIFY** in `config/` are placeholders from memory. Replace them before presenting.
 > * This is preparation code. Ask your local organizers how they treat code written before the
 >   event, and say plainly in your submission what was prepared in advance.
@@ -29,6 +31,9 @@ label with its name, and its card lists its analogs on the other bodies.
   toward the cursor. All three follow your altitude, so close to the ground they stay slow and smooth.
   Zooming out of a region simply takes you back up a level (the card closes with it).
 - **Click a dotted area** to dive in: the planet turns to face you and real NASA tiles stream in.
+  Close-up imagery follows the view, not the selection: whenever you rest near a surface, the tiles
+  for exactly what is on screen load at screen resolution (centre first), the previous imagery stays
+  until the new one is drawn, and it works at the poles too (Shackleton).
 - **Trips between bodies** take about 8 to 12 seconds: lift off, turn toward the destination, a long
   jump through star streaks with a widening view; the destination appears as a speck, grows as you
   brake, pauses whole on screen, then the camera dives to the place. The way back to Earth is the same.

@@ -33,3 +33,5 @@ One line per decision, added in the same commit as the change.
 | Sun 17:00 | Trips last 8-12 s (lift off, turn, long jump with even braking, beat on the whole planet, dive) | Previous jumps were too short to read in the video |
 | Sun 17:00 | Key light follows the camera (upper left, in front); Earth day lighting wrapped and brighter | Earth looked dark; every arrival now lands on the lit side |
 | Sun 17:00 | No arcs at all; hovering a region shows a small translucent name label | Links stay in the card; the globe stays clean |
+| Sun 19:00 | Publish the team's final run (`final_out_dino.zip`, DINOv2, Medusae Fossae x 2 tasks) to `public/data/` and commit it | Vercel builds from the repo; `out/` stays git-ignored |
+| Sun 19:00 | Close-up imagery follows the view (rest near a surface: tiles for what is on screen at screen resolution), double-buffered, per-pixel lat/lon shader | Patches were 4x too coarse, vanished on any move, and were skipped at the poles |

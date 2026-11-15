@@ -1,0 +1,28 @@
+{
+ "synthetic": false,
+ "targets": [
+  {
+   "key": "medusae_fossae",
+   "label": "Medusae Fossae Formation (yardangs)",
+   "body": "mars",
+   "lat": 11.0,
+   "lon": -159.0,
+   "tasks": [
+    "wind_erosion_science",
+    "rover_mobility"
+   ],
+   "profile": {
+    "lst_range_c": 100,
+    "lst_min_c": -90,
+    "ndvi_mean": 0.0,
+    "dust_aod": 0.8,
+    "slope_p50": 1.167,
+    "tri_mean": 9.982,
+    "relief": 256.085,
+    "anisotropy": 0.152
+   },
+   "image": "/img/target_medusae_fossae.png",
+   "notes": ""
+  }
+ ]
+}

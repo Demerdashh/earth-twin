@@ -1,0 +1,52 @@
+{
+ "synthetic": false,
+ "embedder": "dinov2_vits14",
+ "results": {
+  "medusae_fossae__wind_erosion_science": {
+   "auc": 0.4189373297002725,
+   "n_positive": 2,
+   "known_sites": [
+    {
+     "site": "Death Valley",
+     "best_score": 0.068,
+     "percentile": 43.9,
+     "top_percent": 56.1
+    },
+    {
+     "site": "Lut Desert yardangs, Iran",
+     "best_score": 0.066,
+     "percentile": 39.8,
+     "top_percent": 60.2
+    }
+   ],
+   "ablation": {
+    "dimension": "terrain_shape",
+    "auc_with": 0.4189373297002725,
+    "auc_without": 0.4226352666407162
+   }
+  },
+  "medusae_fossae__rover_mobility": {
+   "auc": 0.5096340988711561,
+   "n_positive": 2,
+   "known_sites": [
+    {
+     "site": "Death Valley",
+     "best_score": 0.0797,
+     "percentile": 22.5,
+     "top_percent": 77.5
+    },
+    {
+     "site": "Lut Desert yardangs, Iran",
+     "best_score": 0.283,
+     "percentile": 79.5,
+     "top_percent": 20.5
+    }
+   ],
+   "ablation": {
+    "dimension": "terrain_shape",
+    "auc_with": 0.5096340988711561,
+    "auc_without": 0.579408330089529
+   }
+  }
+ }
+}

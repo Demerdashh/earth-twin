@@ -1,0 +1,13 @@
+{
+ "generated": "2026-11-15T09:42:45+00:00",
+ "synthetic": false,
+ "embedder": "dinov2_vits14",
+ "res_m": 463.0,
+ "tile_px": 64,
+ "earth_tiles": 5140,
+ "targets": [
+  "medusae_fossae"
+ ],
+ "novelty_km": 200.0,
+ "images": 77
+}
