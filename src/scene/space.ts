@@ -1,12 +1,12 @@
-// One three.js scene with the Moon, Earth and Mars side by side (not to scale).
+// One three.js scene: Earth as the hero, with the Moon and Mars at their real relative sizes
+// further out in the same sky. Each body spins slowly on its own axis.
 //
-// Interaction (no orbiting camera, so nothing moves unless you move it):
-//   drag a planet       turn that planet only
-//   drag empty space    pan left / right / up / down
-//   wheel / pinch       zoom toward the cursor, freely in and out
-//   click               a planet to frame it, a dotted region to dive into it
-// The view level (system / body / region) is derived from where the camera actually is, so zooming
-// out of a region or a planet simply takes you back up, and the UI follows.
+// Interaction:
+//   drag a planet       turn that planet only (smoothly, at a speed that follows your altitude)
+//   drag empty space    pan; wheel / pinch zooms toward the cursor, slowing near the surface
+//   click               a planet to go there, a dotted region to dive into it
+// Trips between bodies: the camera turns toward the destination, jumps with star streaks,
+// shows the whole planet, then dives to the place. The view level follows the camera.
 import {
   ACESFilmicToneMapping,
   AmbientLight,
@@ -36,9 +36,10 @@ import {
 } from 'three';
 import { IMAGERY, type Body } from '../data/config';
 import type { Link, Region, RegionKind } from '../data/regions';
-import { angularDistanceDeg, easeInOutCubic, latLonToVec3, vec3ToLatLon } from './geo';
+import { angularDistanceDeg, latLonToVec3, vec3ToLatLon } from './geo';
 import { arcMaterial, atmosphereMaterial, earthMaterial, num, regionMaterial, starMaterial } from './materials';
 import { RegionPatch } from './patch';
+import { Warp } from './warp';
 
 export type View = 'system' | 'body' | 'region';
 export interface BodyTextures {
@@ -49,44 +50,49 @@ export interface BodyTextures {
   earthWater: Texture;
 }
 
-/** Not to scale: sizes chosen for legibility, ordered like the real bodies. */
-export const BODY_RADIUS: Record<Body, number> = { earth: 1, mars: 0.66, moon: 0.46 };
+const BODIES = ['earth', 'moon', 'mars'] as const;
+/** Real relative sizes (mean radii: Moon 0.273 and Mars 0.532 of Earth). Distances are not to scale. */
+export const BODY_RADIUS: Record<Body, number> = { earth: 1, moon: 0.273, mars: 0.532 };
 const BODY_CENTER: Record<Body, Vector3> = {
-  moon: new Vector3(-3.05, 0, 0),
   earth: new Vector3(0, 0, 0),
-  mars: new Vector3(3.2, 0, 0),
+  moon: new Vector3(3.6, 1.35, -7),
+  mars: new Vector3(-7.6, -1.0, -16),
 };
 const BODY_TINT: Record<Body, string> = { earth: '#cfe3ff', moon: '#e6e8f2', mars: '#ffc4a8' };
+const SPIN: Record<Body, number> = { earth: 0.05, moon: 0.03, mars: 0.04 }; // rad/s about each body's own axis
 export const KIND_COLOR: Record<RegionKind, string> = {
   target: '#ffffff',
   known: '#9fe3d0',
   egypt: '#ecd29a',
   ranked: '#b9bcff',
 };
-/** Sunlight comes from the upper left, slightly in front: every body shows a terminator. */
+/** Sunlight from the upper left, slightly in front of the home view. */
 const LIGHT_DIR = new Vector3(-0.72, 0.42, 0.9).normalize();
-const SYSTEM_CAM = new Vector3(0.08, 0, 8.6);
-const MAX_Z = 13;
-const PAN_LIMIT = new Vector2(5.2, 3.2);
+/** Home: Earth fills most of the view, the Moon and Mars hang in the same sky. */
+const HOME_POS = new Vector3(0.25, 0.1, 4.3);
+const HOME_Q = new Quaternion();
+const WORLD_LIMIT = 45;
+const BODY_FRAME = 3.9; // camera distance from a body's centre when framing it, in radii
 /** Camera height above the surface when diving into a region, in body radii. */
-const REGION_ALTITUDE: Record<Body | 'ranked', number> = { earth: 0.26, mars: 0.32, moon: 0.34, ranked: 0.12 };
-const BODY_FRAME = 4.3; // camera distance when framing a body, in radii
+const REGION_ALTITUDE: Record<Body | 'ranked', number> = { earth: 0.28, mars: 0.34, moon: 0.36, ranked: 0.12 };
 const ARC_SEGMENTS = 72;
-const IDLE_SPIN = 0.035; // rad/s, system view only, until the user touches that body
 const Y = new Vector3(0, 1, 0);
-const X = new Vector3(1, 0, 0);
 const tmp = new Vector3();
 const tmp2 = new Vector3();
+const tmpQ = new Quaternion();
 
 interface BodyNode {
   pivot: Group;
   mesh: Mesh;
   radius: number;
+  goal: Quaternion; // orientation the pivot glides toward
+  facing: boolean; // gliding to present a region (slower, cinematic)
+  heldUntil: number; // spin paused until (ms), after the user turns it
 }
 interface RegionNode {
   region: Region;
   points: Points<BufferGeometry, ShaderMaterial>;
-  local: Vector3; // surface point in body-local coordinates
+  local: Vector3;
 }
 interface ArcNode {
   link: Link;
@@ -94,43 +100,50 @@ interface ArcNode {
   from: RegionNode;
   to: RegionNode;
 }
-interface Flight {
-  path: CubicBezierCurve3;
-  t: number;
+/** One stage of a camera trip. Start pose is taken when the leg begins. */
+interface Leg {
+  to: Vector3;
+  look: Quaternion;
   dur: number;
-  done: () => void;
+  warp?: boolean;
+  onStart?: () => void;
+  start?: { pos: Vector3; q: Quaternion; c1: Vector3; c2: Vector3 };
+  t: number;
 }
 export interface SpaceEvents {
   click(hit: { body: Body; region: Region | null } | null): void;
-  /** The camera moved into another view level (by flight, scroll or pan). */
   view(view: View, body: Body | null): void;
-  /** Any direct manipulation (drag, wheel, pinch). */
   interact(): void;
 }
 
+const ease = (t: number): number => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+const easeWarp = (t: number): number => (t < 0.5 ? 16 * t ** 5 : 1 - (-2 * t + 2) ** 5 / 2); // quintic: long cruise
+const lookRotation = (eye: Vector3, target: Vector3): Quaternion =>
+  new Quaternion().setFromRotationMatrix(new Matrix4().lookAt(eye, target, Y));
+
 export class Space {
   readonly renderer: WebGLRenderer;
-  readonly camera = new PerspectiveCamera(36, 1, 0.01, 2000);
+  readonly camera = new PerspectiveCamera(36, 1, 0.005, 2000);
   private readonly scene = new Scene();
   private readonly bodies = {} as Record<Body, BodyNode>;
   private regions = new Map<string, RegionNode>();
   private arcs: ArcNode[] = [];
   private readonly stars: Points<BufferGeometry, ShaderMaterial>;
+  private readonly warp = new Warp();
   private readonly patch = new RegionPatch();
   private readonly raycaster = new Raycaster();
-  private readonly camGoal = SYSTEM_CAM.clone();
-  private readonly turnTo = new Map<Body, Quaternion>();
-  private flight: Flight | null = null;
+  private readonly camGoal = HOME_POS.clone();
+  private legs: Leg[] = [];
+  private tripDone: (() => void) | null = null;
   private time = 0;
   private last = performance.now();
+  private warpLevel = 0;
 
   view: View = 'system';
-  focusBody: Body | null = null;
+  focusBody: Body | null = 'earth';
   selected: string | null = null;
   hovered: string | null = null;
   regionsVisible = true;
-  /** Gentle spin until the first interaction; after that nothing moves unless you move it. */
-  private idle = true;
 
   constructor(
     private readonly host: HTMLElement,
@@ -146,10 +159,11 @@ export class Space {
     host.append(this.renderer.domElement);
 
     const sun = new DirectionalLight('#fff4e6', 2.9);
-    sun.position.copy(LIGHT_DIR).multiplyScalar(50);
+    sun.position.copy(LIGHT_DIR).multiplyScalar(80);
     this.scene.add(sun, new AmbientLight('#8c8fd0', 0.1));
     this.stars = this.makeStars(pr);
-    this.scene.add(this.stars);
+    this.scene.add(this.stars, this.camera);
+    this.camera.add(this.warp.lines);
 
     const aniso = this.renderer.capabilities.getMaxAnisotropy();
     const all = [textures.moon, textures.mars, textures.earth, textures.earthNight, textures.earthWater];
@@ -164,8 +178,8 @@ export class Space {
     this.addAtmosphere('earth', '#6fa8ff', 0.95, 4.4, 1.022);
     this.addAtmosphere('mars', '#e8a07a', 0.45, 4.2, 1.02);
 
-    this.camera.position.copy(SYSTEM_CAM);
-    this.camera.lookAt(SYSTEM_CAM.x, SYSTEM_CAM.y, 0);
+    this.camera.position.copy(HOME_POS);
+    this.camera.quaternion.copy(HOME_Q);
     this.resize();
     window.addEventListener('resize', this.resize);
     this.bindInput();
@@ -175,7 +189,7 @@ export class Space {
   /* ------------------------------------------------------------ building */
 
   private makeStars(pr: number): Points<BufferGeometry, ShaderMaterial> {
-    const n = 2600;
+    const n = 3400;
     const pos = new Float32Array(n * 3);
     const size = new Float32Array(n);
     const phase = new Float32Array(n);
@@ -183,7 +197,7 @@ export class Space {
       const u = Math.random() * 2 - 1;
       const t = Math.random() * Math.PI * 2;
       const s = Math.sqrt(1 - u * u);
-      pos.set([s * Math.cos(t) * 600, u * 600, -Math.abs(s * Math.sin(t)) * 600 - 50], i * 3);
+      pos.set([s * Math.cos(t) * 700, u * 700, s * Math.sin(t) * 700], i * 3);
       size[i] = 0.5 + Math.random() ** 4 * 2.2;
       phase[i] = Math.random() * 6.28;
     }
@@ -204,7 +218,7 @@ export class Space {
     // Present a meaningful side first (Africa and Egypt, Tharsis and Medusae, the near side).
     pivot.quaternion.setFromAxisAngle(Y, body === 'earth' ? -0.52 : body === 'mars' ? 2.2 : 0.15);
     this.scene.add(pivot);
-    this.bodies[body] = { pivot, mesh, radius };
+    this.bodies[body] = { pivot, mesh, radius, goal: pivot.quaternion.clone(), facing: false, heldUntil: 0 };
   }
 
   private addAtmosphere(body: Body, color: string, strength: number, power: number, scale: number): void {
@@ -315,11 +329,11 @@ export class Space {
   }
 
   private refreshStates(): void {
+    const inside = this.view === 'region';
     for (const [id, n] of this.regions) {
       n.points.visible = this.regionsVisible;
       num(n.points.material, 'uState').value = id === this.selected ? 2 : id === this.hovered ? 1 : 0;
       // Inside a region the imagery leads: the open region's dots soften, the others step back.
-      const inside = this.view === 'region';
       num(n.points.material, 'uOpacity').value =
         id === this.selected ? (inside ? 0.45 : 1) : this.selected && id !== this.hovered ? 0.3 : 1;
     }
@@ -327,6 +341,29 @@ export class Space {
 
   region(id: string): Region | undefined {
     return this.regions.get(id)?.region;
+  }
+
+  /* ------------------------------------------------------------ geometry helpers */
+
+  private forward(out = new Vector3()): Vector3 {
+    return out.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
+  }
+
+  /** Body nearest to the camera relative to its size, with the camera's altitude above it. */
+  private nearest(p: Vector3 = this.camera.position): { body: Body; alt: number; rel: number } {
+    let best: { body: Body; alt: number; rel: number } = { body: 'earth', alt: Infinity, rel: Infinity };
+    for (const b of BODIES) {
+      const d = p.distanceTo(BODY_CENTER[b]);
+      const rel = d / BODY_RADIUS[b];
+      if (rel < best.rel) best = { body: b, alt: d - BODY_RADIUS[b], rel };
+    }
+    return best;
+  }
+
+  /** Scene units per screen pixel at a given viewing distance. */
+  private unitsPerPixel(distance: number): number {
+    const h = this.renderer.domElement.clientHeight || 1;
+    return (2 * Math.max(distance, 0.01) * Math.tan((this.camera.fov * Math.PI) / 360)) / h;
   }
 
   /* ------------------------------------------------------------ picking */
@@ -339,7 +376,7 @@ export class Space {
   private hitBody(clientX: number, clientY: number): { body: Body; point: Vector3 } | null {
     this.raycaster.setFromCamera(this.ndc(clientX, clientY), this.camera);
     const hit = this.raycaster.intersectObjects(
-      Object.values(this.bodies).map((b) => b.mesh),
+      BODIES.map((b) => this.bodies[b].mesh),
       false,
     )[0];
     return hit ? { body: hit.object.userData.body as Body, point: hit.point } : null;
@@ -409,10 +446,7 @@ export class Space {
     const end = (e: PointerEvent): void => {
       pointers.delete(e.pointerId);
       if (pointers.size < 2) pinch = 0;
-      if (drag && !drag.moved && e.type === 'pointerup') {
-        this.idle = false;
-        this.events.click(this.pick(e.clientX, e.clientY));
-      }
+      if (drag && !drag.moved && e.type === 'pointerup') this.events.click(this.pick(e.clientX, e.clientY));
       drag = null;
     };
     el.addEventListener('pointerup', end);
@@ -423,145 +457,191 @@ export class Space {
         e.preventDefault();
         this.events.interact();
         const dy = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY;
-        this.zoomAt(e.clientX, e.clientY, Math.exp(Math.max(-0.6, Math.min(0.6, dy * 0.0016))));
+        this.zoomAt(e.clientX, e.clientY, Math.exp(Math.max(-0.35, Math.min(0.35, dy * 0.0012))));
       },
       { passive: false },
     );
   }
 
-  /** Turn one planet by a screen drag; the others do not move. */
+  /**
+   * Turn one planet by a screen drag. The rotation per pixel matches the ground under the cursor,
+   * so close up it moves slowly and evenly instead of racing.
+   */
   private turn(body: Body, dx: number, dy: number): void {
-    this.idle = false;
-    this.cancelFlight();
+    this.cancelTrip();
     const node = this.bodies[body];
-    this.turnTo.delete(body);
-    const speed = 0.0055 / Math.max(0.4, Math.min(2, this.zoomFactor(body)));
-    const q = new Quaternion().setFromAxisAngle(Y, dx * speed);
-    q.multiply(new Quaternion().setFromAxisAngle(X, dy * speed));
-    node.pivot.quaternion.premultiply(q).normalize();
-  }
-
-  /** Below 1 when the camera is close to that body: turn more finely up close. */
-  private zoomFactor(body: Body): number {
-    return (this.camera.position.distanceTo(BODY_CENTER[body]) - BODY_RADIUS[body]) / (BODY_RADIUS[body] * 2);
-  }
-
-  /** World units per screen pixel at the z = 0 plane. */
-  private worldPerPixel(): number {
-    const h = this.renderer.domElement.clientHeight || 1;
-    return (2 * Math.max(this.camGoal.z, 0.2) * Math.tan((this.camera.fov * Math.PI) / 360)) / h;
+    const dist = this.camera.position.distanceTo(BODY_CENTER[body]) - node.radius;
+    const k = Math.min(0.01, this.unitsPerPixel(Math.max(dist, node.radius * 0.02)) / node.radius);
+    const up = new Vector3(0, 1, 0).applyQuaternion(this.camera.quaternion);
+    const right = new Vector3(1, 0, 0).applyQuaternion(this.camera.quaternion);
+    const q = new Quaternion().setFromAxisAngle(up, dx * k).multiply(new Quaternion().setFromAxisAngle(right, dy * k));
+    node.goal.premultiply(q).normalize();
+    node.facing = false;
+    node.heldUntil = performance.now() + 2500;
   }
 
   pan(dx: number, dy: number): void {
-    this.idle = false;
-    this.cancelFlight();
-    const k = this.worldPerPixel();
-    this.camGoal.x -= dx * k;
-    this.camGoal.y += dy * k;
+    this.cancelTrip();
+    const { alt } = this.nearest(this.camGoal);
+    const k = this.unitsPerPixel(Math.min(alt, 12));
+    const right = new Vector3(1, 0, 0).applyQuaternion(this.camera.quaternion);
+    const up = new Vector3(0, 1, 0).applyQuaternion(this.camera.quaternion);
+    this.camGoal.addScaledVector(right, -dx * k).addScaledVector(up, dy * k);
     this.clampGoal();
   }
 
-  /** Zoom toward the point under the cursor (factor < 1 zooms in). */
+  /** Zoom toward the point under the cursor; altitude shrinks proportionally, so it eases near the ground. */
   zoomAt(clientX: number, clientY: number, factor: number): void {
-    this.idle = false;
-    this.cancelFlight();
+    this.cancelTrip();
     this.raycaster.setFromCamera(this.ndc(clientX, clientY), this.camera);
     const hit = this.hitBody(clientX, clientY);
-    const anchor = hit?.point ?? this.raycaster.ray.intersectPlane(new Plane(new Vector3(0, 0, 1), 0), new Vector3());
+    let anchor = hit?.point ?? null;
+    if (!anchor) {
+      const c = BODY_CENTER[this.nearest(this.camGoal).body];
+      anchor = this.raycaster.ray.intersectPlane(
+        new Plane().setFromNormalAndCoplanarPoint(this.forward(), c),
+        new Vector3(),
+      );
+    }
     if (!anchor) return;
-    const goal = anchor.clone().add(this.camGoal.clone().sub(anchor).multiplyScalar(factor));
-    // Keep z only; x/y follow the cursor ray so the point under the cursor stays put.
-    this.camGoal.copy(goal);
+    this.camGoal.copy(anchor.clone().add(this.camGoal.clone().sub(anchor).multiplyScalar(factor)));
     this.clampGoal();
   }
 
-  /** Never inside a planet, never too far, never lost off to the side. */
+  /** Never inside a planet, never lost far out in space. */
   private clampGoal(): void {
     const g = this.camGoal;
-    g.x = Math.max(-PAN_LIMIT.x, Math.min(PAN_LIMIT.x, g.x));
-    g.y = Math.max(-PAN_LIMIT.y, Math.min(PAN_LIMIT.y, g.y));
-    let minZ = 0.6;
-    for (const b of ['moon', 'earth', 'mars'] as const) {
+    if (g.length() > WORLD_LIMIT) g.setLength(WORLD_LIMIT);
+    for (const b of BODIES) {
       const c = BODY_CENTER[b];
-      const r = BODY_RADIUS[b];
-      const dxy = Math.hypot(g.x - c.x, g.y - c.y);
-      if (dxy < r * 1.05) minZ = Math.max(minZ, c.z + Math.sqrt(Math.max(r * r - dxy * dxy, 0)) + r * 0.07);
+      const min = BODY_RADIUS[b] * 1.035;
+      if (g.distanceTo(c) < min) g.copy(c).add(tmp.copy(g).sub(c).setLength(min));
     }
-    g.z = Math.max(minZ, Math.min(MAX_Z, g.z));
   }
 
-  /* ------------------------------------------------------------ camera flights */
+  /* ------------------------------------------------------------ trips */
 
-  private cancelFlight(): void {
-    if (!this.flight) return;
+  private cancelTrip(): void {
+    if (!this.legs.length) return;
+    this.legs = [];
     this.camGoal.copy(this.camera.position);
-    this.flight.done();
+    const done = this.tripDone;
+    this.tripDone = null;
+    done?.();
   }
 
-  private fly(to: Vector3, dur: number, arc = false): Promise<void> {
-    this.flight?.done();
-    const p0 = this.camera.position.clone();
-    const lift = arc ? Math.max(p0.z, to.z, 7.5) : 0;
-    const p1 = arc ? new Vector3(p0.x, p0.y, lift) : p0.clone().lerp(to, 1 / 3);
-    const p2 = arc ? new Vector3(to.x, to.y, lift) : p0.clone().lerp(to, 2 / 3);
+  private trip(legs: Leg[]): Promise<void> {
+    this.cancelTrip();
+    this.legs = legs;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    return new Promise((resolve) => {
-      this.flight = {
-        path: new CubicBezierCurve3(p0, p1, p2, to.clone()),
-        t: 0,
-        dur: reduce ? 0.001 : dur,
-        done: () => {
-          this.flight = null;
-          resolve();
-        },
-      };
-      this.camGoal.copy(to);
-    });
+    if (reduce) for (const l of legs) l.dur = 0.001;
+    return new Promise((resolve) => (this.tripDone = resolve));
   }
 
-  /**
-   * Rotation that brings lat/lon to face the camera (+Z) with north up; the planet glides there.
-   */
-  private face(body: Body, lat: number, lon: number): void {
+  /** Rotation that presents lat/lon toward the camera direction `back` (north kept up). */
+  private faceToward(body: Body, lat: number, lon: number, back: Vector3, camQ: Quaternion): void {
     const n = latLonToVec3(lat, lon, 1);
     let east = new Vector3(0, 1, 0).cross(n);
     if (east.lengthSq() < 1e-6) east = new Vector3(1, 0, 0);
     east.normalize();
     const north = n.clone().cross(east).normalize();
-    const local = new Matrix4().makeBasis(east, north, n); // columns: local east, north, normal
-    this.turnTo.set(body, new Quaternion().setFromRotationMatrix(local.invert()));
+    const local = new Matrix4().makeBasis(east, north, n);
+    const right = new Vector3(1, 0, 0).applyQuaternion(camQ);
+    const up = new Vector3(0, 1, 0).applyQuaternion(camQ);
+    const world = new Matrix4().makeBasis(right, up, back);
+    const node = this.bodies[body];
+    node.goal.setFromRotationMatrix(world.multiply(local.invert()));
+    node.facing = true;
+  }
+
+  /**
+   * Legs to bring the camera in front of `body`. Close by: one smooth glide. Far away: turn toward it,
+   * jump across space with star streaks, and arrive with the whole planet in view.
+   */
+  private approach(body: Body): { legs: Leg[]; fwd: Vector3; framed: Vector3; look: Quaternion } {
+    const c = BODY_CENTER[body];
+    const r = BODY_RADIUS[body];
+    const from = this.camera.position.clone();
+    const near = this.nearest(from);
+    const local = near.body === body && near.rel < 7;
+    const fwd = local ? this.forward() : c.clone().sub(from).normalize();
+    const framed = c.clone().addScaledVector(fwd, -r * BODY_FRAME);
+    const look = lookRotation(framed, c);
+    if (local) return { legs: [{ to: framed, look, dur: 1.6, t: 0 }], fwd, framed, look };
+    const legs: Leg[] = [];
+    // Lift off first when we start close to another planet's surface.
+    let start = from;
+    const home = BODY_CENTER[near.body];
+    const homeR = BODY_RADIUS[near.body];
+    if (near.alt < homeR * 2.2) {
+      start = home.clone().add(
+        from
+          .clone()
+          .sub(home)
+          .setLength(homeR * BODY_FRAME),
+      );
+      legs.push({ to: start, look: lookRotation(start, home), dur: 1.1, t: 0 });
+    }
+    const turnLook = lookRotation(start, c);
+    const angle = (legs.length ? legs[legs.length - 1]!.look : this.camera.quaternion).angleTo(turnLook);
+    const dist = start.distanceTo(framed);
+    legs.push(
+      { to: start.clone(), look: turnLook, dur: 0.35 + angle * 0.45, t: 0 },
+      { to: framed, look, dur: 1.5 + Math.min(1.3, dist * 0.06), warp: dist > 4, t: 0 },
+      { to: framed, look, dur: 0.45, t: 0 }, // a beat to see the whole planet
+    );
+    return { legs, fwd, framed, look };
   }
 
   async toSystem(): Promise<void> {
     this.setSelected(null);
-    await this.fly(SYSTEM_CAM, 2.0);
+    let from = this.camera.position.clone();
+    const legs: Leg[] = [];
+    const far = from.distanceTo(HOME_POS) > 6;
+    const near = this.nearest(from);
+    if (far && near.alt < BODY_RADIUS[near.body] * 2.2) {
+      // Lift off the planet we are on before turning home.
+      const c = BODY_CENTER[near.body];
+      from = c.clone().add(
+        from
+          .clone()
+          .sub(c)
+          .setLength(BODY_RADIUS[near.body] * BODY_FRAME),
+      );
+      legs.push({ to: from, look: lookRotation(from, c), dur: 1.1, t: 0 });
+    }
+    if (far) legs.push({ to: from, look: lookRotation(from, BODY_CENTER.earth), dur: 0.7, t: 0 });
+    legs.push({ to: HOME_POS.clone(), look: HOME_Q.clone(), dur: far ? 2.6 : 1.8, warp: far, t: 0 });
+    await this.trip(legs);
   }
 
   async toBody(body: Body): Promise<void> {
     this.setSelected(null);
-    const c = BODY_CENTER[body];
-    const travel = this.focusBody !== null && this.focusBody !== body;
-    await this.fly(new Vector3(c.x, c.y, c.z + BODY_RADIUS[body] * BODY_FRAME), travel ? 2.6 : 2.0, travel);
+    await this.trip(this.approach(body).legs);
   }
 
   async toRegion(region: Region): Promise<void> {
-    const c = BODY_CENTER[region.body];
-    const r = BODY_RADIUS[region.body];
-    const travel = this.focusBody !== null && this.focusBody !== region.body;
+    const body = region.body;
+    const c = BODY_CENTER[body];
+    const r = BODY_RADIUS[body];
     this.patch.clear();
-    this.face(region.body, region.lat, region.lon);
-    const alt = REGION_ALTITUDE[region.kind === 'ranked' ? 'ranked' : region.body];
-    await this.fly(new Vector3(c.x, c.y, c.z + r * (1 + alt)), travel ? 3.4 : 2.2, travel);
+    const { legs, fwd, look } = this.approach(body);
+    const alt = REGION_ALTITUDE[region.kind === 'ranked' ? 'ranked' : body];
+    const close = c.clone().addScaledVector(fwd, -r * (1 + alt));
+    const dive: Leg = {
+      to: close,
+      look: lookRotation(close, c),
+      dur: 1.9,
+      t: 0,
+      onStart: () => this.faceToward(body, region.lat, region.lon, fwd.clone().negate(), look),
+    };
+    // Already framed on this body: turn the planet while gliding down.
+    if (legs.length === 1) legs[0] = { ...dive, onStart: dive.onStart!, dur: 2.0 };
+    else legs.push(dive);
+    await this.trip(legs);
     if (this.selected !== region.id) return;
     // Cover the whole close-up view (ground half-width is about altitude x 45 degrees) with margin.
-    void this.patch.show(
-      this.bodies[region.body].pivot,
-      r,
-      IMAGERY[region.body].color,
-      region.lat,
-      region.lon,
-      alt * 62,
-    );
+    void this.patch.show(this.bodies[body].pivot, r, IMAGERY[body].color, region.lat, region.lon, alt * 62);
   }
 
   /* ------------------------------------------------------------ frame */
@@ -574,33 +654,90 @@ export class Space {
     this.renderer.setSize(w, h, false);
   };
 
+  private runLegs(dt: number): void {
+    const leg = this.legs[0];
+    if (!leg) return;
+    if (!leg.start) {
+      const pos = this.camera.position.clone();
+      // Bow the path around any planet that sits on the straight line.
+      const c1 = pos.clone().lerp(leg.to, 1 / 3);
+      const c2 = pos.clone().lerp(leg.to, 2 / 3);
+      for (const b of BODIES) {
+        const c = BODY_CENTER[b];
+        const r = BODY_RADIUS[b];
+        const line = leg.to.clone().sub(pos);
+        const len = line.length();
+        if (len < 1e-6) continue;
+        const t = Math.max(0, Math.min(1, c.clone().sub(pos).dot(line) / (len * len)));
+        const closest = pos.clone().addScaledVector(line, t);
+        const d = closest.distanceTo(c);
+        if (d < r * 2 && t > 0.05 && t < 0.95) {
+          const away = closest.clone().sub(c);
+          if (away.lengthSq() < 1e-6) away.set(0, 1, 0);
+          away.setLength(r * 2.6 - d);
+          c1.add(away);
+          c2.add(away);
+        }
+      }
+      leg.start = { pos, q: this.camera.quaternion.clone(), c1, c2 };
+      leg.onStart?.();
+    }
+    leg.t = Math.min(1, leg.t + dt / leg.dur);
+    const k = leg.warp ? easeWarp(leg.t) : ease(leg.t);
+    new CubicBezierCurve3(leg.start.pos, leg.start.c1, leg.start.c2, leg.to).getPoint(k, this.camera.position);
+    // Turn early in the leg so the destination is in front while we move.
+    this.camera.quaternion.slerpQuaternions(leg.start.q, leg.look, ease(Math.min(1, leg.t * (leg.warp ? 2.2 : 1))));
+    this.warpLevel = leg.warp ? Math.sin(Math.PI * leg.t) ** 1.4 : 0;
+    if (leg.t >= 1) {
+      this.legs.shift();
+      if (!this.legs.length) {
+        this.camGoal.copy(this.camera.position);
+        const done = this.tripDone;
+        this.tripDone = null;
+        done?.();
+      }
+    }
+  }
+
   private readonly tick = (): void => {
     if (document.hidden) return;
     const now = performance.now();
-    const dt = Math.min(0.05, (now - this.last) / 1000);
+    const elapsed = (now - this.last) / 1000;
+    const dt = Math.min(0.05, elapsed); // smoothing steps
     this.last = now;
     this.time += dt;
 
-    // Camera: either on a flight path, or easing toward the goal set by pan / zoom.
-    if (this.flight) {
-      const f = this.flight;
-      f.t = Math.min(1, f.t + dt / f.dur);
-      f.path.getPoint(easeInOutCubic(f.t), this.camera.position);
-      if (f.t >= 1) f.done();
-    } else {
-      this.camera.position.lerp(this.camGoal, 1 - Math.exp(-dt * 9));
+    // Trips follow real time, so a 3-second jump stays 3 seconds even on a slow device.
+    if (this.legs.length) this.runLegs(Math.min(0.25, elapsed));
+    else {
+      this.warpLevel = 0;
+      this.camera.position.lerp(this.camGoal, 1 - Math.exp(-dt * 7));
     }
+    // Speed feel: the field of view opens during a jump, streaks rush past.
+    const fov = 36 + 30 * this.warpLevel;
+    if (Math.abs(this.camera.fov - fov) > 0.01) {
+      this.camera.fov = fov;
+      this.camera.updateProjectionMatrix();
+    }
+    this.warp.update(dt, this.warpLevel);
+    document.body.style.setProperty('--warp', this.warpLevel.toFixed(3));
 
-    // Planets: glide to a requested orientation, or idle-spin in the system view.
-    for (const b of ['moon', 'earth', 'mars'] as const) {
+    // Planets: each spins slowly on its own axis unless you hold it, look at it closely or a region is open.
+    const camNear = this.nearest();
+    for (const b of BODIES) {
       const node = this.bodies[b];
-      const want = this.turnTo.get(b);
-      if (want) {
-        node.pivot.quaternion.slerp(want, 1 - Math.exp(-dt * 3.4));
-        if (node.pivot.quaternion.angleTo(want) < 1e-3) this.turnTo.delete(b);
-      } else if (this.view === 'system' && this.idle) {
-        node.pivot.quaternion.premultiply(tmpQ.setFromAxisAngle(Y, IDLE_SPIN * dt));
+      const paused =
+        now < node.heldUntil ||
+        node.facing ||
+        (this.view === 'region' && this.focusBody === b) ||
+        (camNear.body === b && camNear.alt < node.radius * 1.4);
+      if (!paused) {
+        tmpQ.setFromAxisAngle(Y, SPIN[b] * dt);
+        node.goal.multiply(tmpQ);
+        node.pivot.quaternion.multiply(tmpQ);
       }
+      node.pivot.quaternion.slerp(node.goal, 1 - Math.exp(-dt * (node.facing ? 3.2 : 11)));
+      if (node.facing && node.pivot.quaternion.angleTo(node.goal) < 2e-3) node.facing = false;
     }
 
     this.updateView();
@@ -612,27 +749,25 @@ export class Space {
     this.renderer.render(this.scene, this.camera);
   };
 
-  /** Work out the view level from the camera position; tell the app when it changes. */
+  /** Work out the view level from the camera; tell the app when it changes. */
   private updateView(): void {
-    // Mid-flight the camera passes through other levels on purpose: judge only where it lands.
-    if (this.flight) return;
+    if (this.legs.length) return; // judge only where a trip lands
     const cam = this.camera.position;
-    let body: Body | null = null;
-    for (const b of ['moon', 'earth', 'mars'] as const) {
-      const c = BODY_CENTER[b];
-      const r = BODY_RADIUS[b];
-      if (Math.hypot(cam.x - c.x, cam.y - c.y) < r * 1.35 && cam.z - c.z < r * 4.6) body = b;
-    }
+    const near = this.nearest();
+    const fwd = this.forward(tmp2);
+    let body: Body | null = near.rel < 6.5 ? near.body : null;
     let view: View = body ? 'body' : 'system';
+    if (body === 'earth' && cam.distanceTo(HOME_POS) < 1.6 && fwd.z < -0.95) view = 'system';
     const sel = this.selected ? this.regions.get(this.selected) : undefined;
     if (body && sel && sel.region.body === body) {
-      const r = BODY_RADIUS[body];
-      const p = this.bodies[body].pivot.localToWorld(tmp.copy(sel.local));
-      const facing = tmp2.copy(p).sub(BODY_CENTER[body]).normalize().z;
-      const turning = this.turnTo.has(body); // still gliding to face the camera: counts as open
-      const near = cam.z - BODY_CENTER[body].z < r * 2.1 && (turning || Math.hypot(cam.x - p.x, cam.y - p.y) < r * 0.9);
-      if (near && (facing > 0.55 || turning)) view = 'region';
+      const node = this.bodies[body];
+      const p = node.pivot.localToWorld(tmp.copy(sel.local));
+      const toCam = cam.clone().sub(BODY_CENTER[body]).normalize();
+      const facing = p.clone().sub(BODY_CENTER[body]).normalize().dot(toCam);
+      const inView = p.clone().sub(cam).normalize().dot(fwd) > 0.86;
+      if (near.alt < node.radius * 1.15 && (node.facing || (facing > 0.6 && inView))) view = 'region';
     }
+    if (view === 'system' && near.rel >= 6.5) body = null;
     if (view !== this.view || body !== this.focusBody) {
       this.view = view;
       this.focusBody = body;
@@ -642,7 +777,7 @@ export class Space {
   }
 
   private arcAlpha(a: ArcNode): number {
-    if (!this.regionsVisible) return 0;
+    if (!this.regionsVisible || this.warpLevel > 0.05) return 0;
     const touches = (id: string | null): boolean => !!id && (a.link.from === id || a.link.to === id);
     if (touches(this.selected)) return 1;
     if (touches(this.hovered)) return 0.75;
@@ -662,17 +797,10 @@ export class Space {
       const n0 = p0.clone().sub(BODY_CENTER[a.from.region.body]).normalize();
       const n3 = p3.clone().sub(BODY_CENTER[a.to.region.body]).normalize();
       const span = p0.distanceTo(p3);
-      const lift = new Vector3(0, 0, span * 0.22); // bow toward the viewer, away from the planets
       const curve = new CubicBezierCurve3(
         p0,
-        p0
-          .clone()
-          .addScaledVector(n0, span * 0.3)
-          .add(lift),
-        p3
-          .clone()
-          .addScaledVector(n3, span * 0.3)
-          .add(lift),
+        p0.clone().addScaledVector(n0, span * 0.32),
+        p3.clone().addScaledVector(n3, span * 0.32),
         p3,
       );
       const attr = a.line.geometry.getAttribute('position') as BufferAttribute;
@@ -684,7 +812,8 @@ export class Space {
     }
   }
 
-  /** Debug/test hook. */
+  /* ------------------------------------------------------------ test hooks */
+
   debug(): {
     view: View;
     body: Body | null;
@@ -694,6 +823,8 @@ export class Space {
     patch: string;
     tiles: number;
     camera: number[];
+    travelling: boolean;
+    warp: number;
   } {
     return {
       view: this.view,
@@ -704,24 +835,24 @@ export class Space {
       patch: this.patch.state,
       tiles: this.patch.tiles,
       camera: this.camera.position.toArray().map((v) => Math.round(v * 100) / 100),
+      travelling: this.legs.length > 0,
+      warp: Math.round(this.warpLevel * 100) / 100,
     };
   }
 
-  /** Where a planet's centre is on screen, in client pixels (tests). */
+  /** Where a planet's centre is on screen, in client pixels. */
   screenOf(body: Body): { x: number; y: number } {
     const p = BODY_CENTER[body].clone().project(this.camera);
     const rect = this.renderer.domElement.getBoundingClientRect();
     return { x: rect.left + ((p.x + 1) / 2) * rect.width, y: rect.top + ((1 - p.y) / 2) * rect.height };
   }
 
-  /** Orientation of one planet (tests: turning one must not move the others). */
+  /** Orientation of one planet as a quaternion. */
   orientation(body: Body): number[] {
-    return this.bodies[body].pivot.quaternion.toArray().map((v) => Math.round(v * 1e4) / 1e4);
+    return this.bodies[body].pivot.quaternion.toArray();
   }
 
   get canvas(): HTMLCanvasElement {
     return this.renderer.domElement;
   }
 }
-
-const tmpQ = new Quaternion();

@@ -6,6 +6,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   CanvasTexture,
+  LinearFilter,
   Mesh,
   MeshStandardMaterial,
   SRGBColorSpace,
@@ -93,6 +94,9 @@ export class RegionPatch {
   private mesh: Mesh<BufferGeometry, MeshStandardMaterial> | null = null;
   private ctrl: AbortController | null = null;
   private fade = 0;
+  private map: CanvasTexture | null = null;
+  private dirty = false;
+  private sinceUpload = 0;
   state: PatchState = 'none';
   tiles = 0;
 
@@ -169,6 +173,10 @@ export class RegionPatch {
     const map = new CanvasTexture(canvas);
     map.colorSpace = SRGBColorSpace;
     map.anisotropy = 8;
+    // The camera looks straight down at this patch: no mipmaps needed, and uploads stay cheap.
+    map.generateMipmaps = false;
+    map.minFilter = LinearFilter;
+    this.map = map;
     const mat = new MeshStandardMaterial({
       map,
       alphaMap: edgeMask(),
@@ -195,7 +203,7 @@ export class RegionPatch {
           loadImage(url, ctrl.signal).then((img) => {
             if (!img || ctrl.signal.aborted) return;
             g.drawImage(img, (c - w.col0) * TILE, (r - w.row0) * TILE, TILE, TILE);
-            map.needsUpdate = true;
+            this.dirty = true; // uploaded in batches by update()
             this.tiles++;
           }),
         );
@@ -206,8 +214,14 @@ export class RegionPatch {
     this.state = this.tiles > 0 ? 'ready' : 'failed';
   }
 
-  /** Called every frame: fades a fresh patch in. */
+  /** Called every frame: uploads newly drawn tiles in batches and fades a fresh patch in. */
   update(dt: number): void {
+    this.sinceUpload += dt;
+    if (this.dirty && this.map && this.sinceUpload > 0.35) {
+      this.map.needsUpdate = true;
+      this.dirty = false;
+      this.sinceUpload = 0;
+    }
     if (!this.mesh || this.fade >= 1) return;
     this.fade = Math.min(1, this.fade + dt / 0.8);
     this.mesh.material.opacity = this.fade;
@@ -217,6 +231,8 @@ export class RegionPatch {
     this.ctrl?.abort();
     this.ctrl = null;
     this.state = 'none';
+    this.map = null;
+    this.dirty = false;
     if (!this.mesh) return;
     this.mesh.removeFromParent();
     this.mesh.geometry.dispose();

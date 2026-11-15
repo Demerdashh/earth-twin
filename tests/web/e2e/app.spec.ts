@@ -9,7 +9,15 @@ interface Debug {
   patch: string;
   tiles: number;
   camera: number[];
+  travelling: boolean;
+  warp: number;
 }
+
+/** Rotation angle between two quaternions [x, y, z, w], radians. */
+const angle = (a: number[], b: number[]): number => {
+  const dot = Math.abs(a.reduce((s, v, i) => s + v * (b[i] ?? 0), 0));
+  return 2 * Math.acos(Math.min(1, dot));
+};
 interface Hook {
   debug: () => Debug;
   orientation: (b: string) => number[];
@@ -46,36 +54,45 @@ test('each planet turns on its own; panning and zooming move only the view', asy
   await started(page);
   await settle(page, 800);
 
-  // The gentle opening spin stops at the first interaction; from then on nothing moves by itself.
+  // Every planet spins slowly on its own axis; dragging Mars turns Mars far more than that drift,
+  // while the Moon and Earth only keep their slow spin.
   const mars = await screenOf(page, 'mars');
-  await page.mouse.move(mars.x, mars.y);
-  await page.mouse.down();
-  await page.mouse.move(mars.x + 20, mars.y, { steps: 3 });
-  await page.mouse.up();
-  await settle(page, 400);
-
-  // Turn Mars by dragging it: the Moon and Earth must not move.
   const before = await Promise.all(['moon', 'earth', 'mars'].map((b) => orientation(page, b)));
   await page.mouse.move(mars.x, mars.y);
   await page.mouse.down();
   await page.mouse.move(mars.x + 140, mars.y + 30, { steps: 8 });
   await page.mouse.up();
+  await settle(page, 300);
   const after = await Promise.all(['moon', 'earth', 'mars'].map((b) => orientation(page, b)));
-  expect(after[0]).toEqual(before[0]);
-  expect(after[1]).toEqual(before[1]);
-  expect(after[2]).not.toEqual(before[2]);
+  expect(angle(before[0]!, after[0]!)).toBeLessThan(0.15);
+  expect(angle(before[1]!, after[1]!)).toBeLessThan(0.15);
+  expect(angle(before[2]!, after[2]!)).toBeGreaterThan(0.6);
 
-  // Drag empty space: the view pans sideways (not an orbit), planets keep their orientation.
+  // Drag empty space: the view pans sideways (not an orbit).
   const cam0 = (await debug(page)).camera;
-  await page.mouse.move(700, 120);
+  await page.mouse.move(300, 90);
   await page.mouse.down();
-  await page.mouse.move(520, 120, { steps: 8 });
+  await page.mouse.move(140, 90, { steps: 8 });
   await page.mouse.up();
   await settle(page, 600);
   const cam1 = (await debug(page)).camera;
-  expect(cam1[0]!).toBeGreaterThan(cam0[0]! + 0.3);
+  expect(cam1[0]!).toBeGreaterThan(cam0[0]! + 0.2);
   expect(cam1[2]).toBeCloseTo(cam0[2]!, 1);
-  expect(await orientation(page, 'earth')).toEqual(after[1]);
+});
+
+test('going to Mars is a jump across space: turn, star streaks, whole planet, then the place', async ({ page }) => {
+  await page.goto('/');
+  await started(page);
+  await page.getByRole('button', { name: 'Mars', exact: true }).click();
+  let peak = 0;
+  for (let i = 0; i < 40 && peak < 0.5; i++) {
+    peak = Math.max(peak, (await debug(page)).warp);
+    await page.waitForTimeout(100);
+  }
+  expect(peak).toBeGreaterThan(0.5);
+  await expect.poll(async () => (await debug(page)).travelling, { timeout: 15_000 }).toBe(false);
+  expect((await debug(page)).body).toBe('mars');
+  expect((await debug(page)).warp).toBe(0);
 });
 
 test('dive into a region, travel to its analog, then scroll back out freely', async ({ page }) => {
@@ -116,12 +133,13 @@ test('dive into a region, travel to its analog, then scroll back out freely', as
   await expect(page.locator('#card-title')).toHaveText('Kharga Depression');
   await expect.poll(async () => (await debug(page)).patch, { timeout: 30_000 }).toMatch(/ready|failed/);
 
-  // Scroll out: no hard stop. The region closes, then the planet, and the card goes with it.
-  for (let i = 0; i < 6; i++) await page.mouse.wheel(0, 400);
+  // Scroll out: no hard stop. The region closes and the card goes with it.
+  for (let i = 0; i < 8; i++) await page.mouse.wheel(0, 400);
   await expect.poll(async () => (await debug(page)).view).not.toBe('region');
   await expect(page.locator('#card')).not.toHaveClass(/is-open/);
-  for (let i = 0; i < 10; i++) await page.mouse.wheel(0, 500);
-  await expect.poll(async () => (await debug(page)).view).toBe('system');
+  // Home: Earth in front, the Moon and Mars in the same sky.
+  await page.getByRole('button', { name: 'All three bodies' }).click();
+  await expect.poll(async () => (await debug(page)).view, { timeout: 15_000 }).toBe('system');
   await expect(page.locator('[data-body="earth"]')).toHaveAttribute('aria-pressed', 'false');
 
   // The guided tour (for the video) shows one caption at a time and stops on any input.

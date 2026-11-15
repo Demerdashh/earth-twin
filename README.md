@@ -18,15 +18,18 @@ images of Earth, Moon, and Mars) is one dimension among several, never the whole
 
 ## The site
 
-One page, one 3D scene with the Moon, Earth and Mars side by side (not to scale). Dotted areas mark
-the targets, the known analog sites and the Egypt deep-dive sites; hovering or opening one draws arcs
-to its analogs on the other bodies.
+One page, one 3D scene. Earth is the hero, large in front; the Moon and Mars hang in the same sky at
+their real sizes relative to Earth (0.27 and 0.53; distances are not to scale). Every body spins
+slowly on its own axis. Dotted areas mark the targets, the known analog sites and the Egypt deep-dive
+sites; hovering or opening one draws arcs to its analogs on the other bodies.
 
-- **Drag a planet** to turn that planet only; the others stay still.
-- **Drag empty space** to move left, right, up and down; **scroll or pinch** to zoom toward the cursor.
-  Zooming out of a region or a planet simply takes you back up a level (the card closes with it).
-- **Click a dotted area** to dive in: the planet turns to face you and real NASA tiles stream in for a
-  sharp close-up; the card's links fly you to the matching site on the other body.
+- **Drag a planet** to turn that planet only. **Drag empty space** to pan; **scroll or pinch** to zoom
+  toward the cursor. All three follow your altitude, so close to the ground they stay slow and smooth.
+  Zooming out of a region simply takes you back up a level (the card closes with it).
+- **Click a dotted area** to dive in: the planet turns to face you and real NASA tiles stream in.
+- **Trips between bodies** feel like a jump across space: the camera turns to the destination, rushes
+  there with star streaks and a widening view, pauses on the whole planet, then dives to the place.
+  The way back works the same.
 - Keyboard: arrows pan, `+`/`-` zoom, `Esc` goes back, `Tab` reaches every region.
 
 Earth uses NASA's Blue Marble Next Generation (true colour) by day, VIIRS Black Marble city lights on the

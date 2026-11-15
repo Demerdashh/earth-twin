@@ -51,11 +51,11 @@ export function earthMaterial(day: Texture, night: Texture, water: Texture, ligh
         vec3 night = vec3(1.0, 0.78, 0.48) * lights * 1.5 * (1.0 - dayMix);
         float water = texture2D(uWater, vUv).r;
         vec3 h = normalize(uLight + v);
-        float glint = pow(max(dot(n, h), 0.0), 320.0) * water * dayMix;
+        float glint = pow(max(dot(n, h), 0.0), 320.0) * smoothstep(0.5, 0.9, water) * dayMix;
         float fres = pow(1.0 - max(dot(n, v), 0.0), 2.6);
         vec3 haze = vec3(0.32, 0.55, 1.0) * fres * 0.5 * smoothstep(-0.25, 0.5, ndl);
         vec3 ocean = vec3(0.012, 0.03, 0.07) * water * max(ndl, 0.0); // faint deep-water blue
-        gl_FragColor = vec4(lit + ocean + night + vec3(1.0, 0.96, 0.88) * glint * 0.22 + haze, 1.0);
+        gl_FragColor = vec4(lit + ocean + night + vec3(1.0, 0.96, 0.88) * glint * 0.14 + haze, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }`,

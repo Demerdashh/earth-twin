@@ -179,6 +179,17 @@ button {
 .space canvas:active {
   cursor: grabbing;
 }
+/* During a jump between planets: the edges darken and the centre glows slightly (driven by --warp). */
+.space::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--warp, 0);
+  background:
+    radial-gradient(closest-side at 50% 50%, rgba(160, 165, 230, 0.1), transparent 60%),
+    radial-gradient(farthest-side at 50% 50%, transparent 55%, rgba(3, 4, 12, 0.85) 100%);
+}
 @keyframes fade-in {
   from {
     opacity: 0;
