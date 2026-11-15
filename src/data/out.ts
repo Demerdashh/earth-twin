@@ -106,7 +106,11 @@ export function checkRank(v: unknown, file: string): RankFile {
   v.results.forEach((r, i) => {
     need(isObj(r), file, `results[${i}] not an object`);
     need(isStr(r.tile_id) && isNum(r.rank) && isNum(r.score), file, `results[${i}] needs tile_id, rank, score`);
-    need(isNum(r.lat) && Math.abs(r.lat) <= 90 && isNum(r.lon) && Math.abs(r.lon) <= 180, file, `results[${i}] bad lat/lon`);
+    need(
+      isNum(r.lat) && Math.abs(r.lat) <= 90 && isNum(r.lon) && Math.abs(r.lon) <= 180,
+      file,
+      `results[${i}] bad lat/lon`,
+    );
     need(r.score >= 0 && r.score <= 1, file, `results[${i}] score outside 0-1`);
   });
   return v as unknown as RankFile;

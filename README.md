@@ -34,7 +34,7 @@ label with its name, and its card lists its analogs on the other bodies.
   Close-up imagery follows the view, not the selection: whenever you rest near a surface, the tiles
   for exactly what is on screen load at screen resolution (centre first), the previous imagery stays
   until the new one is drawn, and it works at the poles too (Shackleton).
-- **Trips between bodies** take about 8 to 12 seconds: lift off, turn toward the destination, a long
+- **Trips between bodies** take about 5 to 6 seconds (plus about 2.5 s to dive to a place): lift off, turn toward the destination, a long
   jump through star streaks with a widening view; the destination appears as a speck, grows as you
   brake, pauses whole on screen, then the camera dives to the place. The way back to Earth is the same.
 - Keyboard: arrows pan, `+`/`-` zoom, `Esc` goes back, `Tab` reaches every region.

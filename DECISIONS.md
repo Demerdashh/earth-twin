@@ -35,3 +35,4 @@ One line per decision, added in the same commit as the change.
 | Sun 17:00 | No arcs at all; hovering a region shows a small translucent name label | Links stay in the card; the globe stays clean |
 | Sun 19:00 | Publish the team's final run (`final_out_dino.zip`, DINOv2, Medusae Fossae x 2 tasks) to `public/data/` and commit it | Vercel builds from the repo; `out/` stays git-ignored |
 | Sun 19:00 | Close-up imagery follows the view (rest near a surface: tiles for what is on screen at screen resolution), double-buffered, per-pixel lat/lon shader | Patches were 4x too coarse, vanished on any move, and were skipped at the poles |
+| Sun 20:00 | Trips between bodies shortened about 30% (lift 1.2 s, turn 1.1 s, jump 3.0-4.2 s, pause 0.7 s); the dive is unchanged | Team feedback: same feel, a little quicker |

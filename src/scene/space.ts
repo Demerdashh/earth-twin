@@ -608,17 +608,17 @@ export class Space {
           .sub(home)
           .setLength(homeR * 4.2),
       );
-      legs.push({ to: start, look: lookRotation(start, home), dur: 1.6, kind: 'lift', t: 0 });
+      legs.push({ to: start, look: lookRotation(start, home), dur: 1.2, kind: 'lift', t: 0 });
     }
     // 2. Turn toward the destination (still out of sight, far beyond the stars' reach).
     const turnLook = lookRotation(start, c);
-    legs.push({ to: start.clone(), look: turnLook, dur: 1.5, t: 0 });
+    legs.push({ to: start.clone(), look: turnLook, dur: 1.1, t: 0 });
     // 3. The jump: long cruise through the streaks, the planet appears as a speck and grows.
     const fwd = c.clone().sub(start).normalize();
     const framed = c.clone().addScaledVector(fwd, -r * distance);
     const look = lookRotation(framed, c);
     const dist = start.distanceTo(framed);
-    const jump: Leg = { to: framed, look, dur: 4.2 + Math.min(1.8, dist / 450), kind: 'warp', t: 0 };
+    const jump: Leg = { to: framed, look, dur: 3.0 + Math.min(1.2, dist / 600), kind: 'warp', t: 0 };
     // Coming home: Earth (out of sight for now) turns Africa and Egypt toward the arrival.
     if (body === 'earth')
       jump.onStart = () => {
@@ -629,7 +629,7 @@ export class Space {
       };
     legs.push(jump);
     // 4. A beat with the whole planet in view.
-    legs.push({ to: framed, look, dur: 0.9, t: 0 });
+    legs.push({ to: framed, look, dur: 0.7, t: 0 });
     return { legs, fwd, look };
   }
 

@@ -62,10 +62,14 @@ export const KNOWN_SITES: KnownSite[] = (knownJson as { sites: KnownSite[] }).si
 export const EGYPT_SITES: EgyptSite[] = (egyptJson as { sites: EgyptSite[] }).sites;
 export const TASKS: Record<string, TaskConfig> = stripAbout<TaskConfig>(tasksJson);
 export const DIMENSIONS = stripAbout<{ label: string; unit: string }>(dimensionsJson);
-export const BODY_LIMITS = bodiesJson as Record<'moon' | 'mars', { label: string; limits: { name: string; text: string }[] }>;
-export const IMAGERY = stripAbout<{ color: ImageryLayer; shade?: ImageryLayer }>(
-  imageryJson,
-) as Record<Body, { color: ImageryLayer; shade?: ImageryLayer }>;
+export const BODY_LIMITS = bodiesJson as Record<
+  'moon' | 'mars',
+  { label: string; limits: { name: string; text: string }[] }
+>;
+export const IMAGERY = stripAbout<{ color: ImageryLayer; shade?: ImageryLayer }>(imageryJson) as Record<
+  Body,
+  { color: ImageryLayer; shade?: ImageryLayer }
+>;
 
 /** Coordinates the team flagged as approximate or to be verified before presenting. */
 export const KNOWN_SITES_APPROXIMATE = true; // known_analogs.json: "Coordinates are APPROXIMATE"
